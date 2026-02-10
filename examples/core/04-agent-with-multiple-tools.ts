@@ -1,0 +1,100 @@
+/**
+ * Example: Agent with Multiple Tools
+ *
+ * Agent with web_search, write_file, and get_current_time tools.
+ *
+ * Setup:
+ *   npm install sweagent
+ *   export OPENAI_API_KEY="sk-..."
+ *
+ * Run:
+ *   npx tsx 04-agent-with-multiple-tools.ts
+ */
+import { createModel, createToolSet, defineTool, runAgent } from 'sweagent';
+import { z } from 'zod';
+
+const searchTool = defineTool({
+  name: 'web_search',
+  description: 'Search for information on the web',
+  input: z.object({ query: z.string() }),
+  handler: async ({ query }) => {
+    console.log(`  [Search] Searching for: "${query}"`);
+    return {
+      results: [
+        `Result 1: Best practices for ${query}`,
+        `Result 2: Common patterns in ${query}`,
+        `Result 3: Advanced tips for ${query}`,
+      ],
+    };
+  },
+});
+
+const writeFileTool = defineTool({
+  name: 'write_file',
+  description: 'Write content to a file (simulated)',
+  input: z.object({
+    filename: z.string(),
+    content: z.string(),
+  }),
+  handler: async ({ filename, content }) => {
+    console.log(`  [WriteFile] Would write ${content.length} chars to ${filename}`);
+    return { success: true, bytes: content.length, filename };
+  },
+});
+
+const getCurrentTimeTool = defineTool({
+  name: 'get_current_time',
+  description: 'Get the current date and time',
+  input: z.object({}),
+  handler: async () => {
+    const now = new Date().toISOString();
+    console.log(`  [Time] Current time: ${now}`);
+    return { time: now };
+  },
+});
+
+async function main() {
+  console.log('Testing multi-tool agent...\n');
+
+  const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
+  const modelName = process.env.MODEL ?? 'gpt-4o-mini';
+  const agentInput =
+    process.env.AGENT_INPUT ??
+    'What time is it now? Then search for "TypeScript best practices" and summarize one tip.';
+  const maxIterations = Number(process.env.MAX_ITERATIONS ?? '10') || 10;
+
+  const result = await runAgent({
+    model: createModel({
+      provider,
+      model: modelName,
+      apiKey: process.env.OPENAI_API_KEY,
+    }),
+    tools: createToolSet({
+      web_search: searchTool,
+      write_file: writeFileTool,
+      get_current_time: getCurrentTimeTool,
+    }),
+    systemPrompt:
+      'You are a research assistant. Use the web_search tool at most once or twice to find information. After you have the search results, respond with your final summary in plain text and do not call any more tools.',
+    input: agentInput,
+    maxIterations,
+    onStep: step => {
+      if (step.toolCalls?.length) {
+        step.toolCalls.forEach(tc => {
+          console.log(`Step ${step.iteration + 1}: ${tc.toolName}()`);
+        });
+      } else {
+        console.log(`Step ${step.iteration + 1}: Generating response...`);
+      }
+    },
+  });
+
+  console.log('\n✓ Agent completed');
+  console.log('\n--- ANSWER ---\n');
+  console.log(result.output);
+  console.log('\n--- STATS ---');
+  console.log('Steps:', result.steps.length);
+  console.log('Total tokens:', result.totalUsage);
+}
+
+main().catch(console.error);
