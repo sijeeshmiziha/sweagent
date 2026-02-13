@@ -29,7 +29,10 @@ export function createDesignDatabaseTool(model: Model) {
     handler: async ({ requirement }): Promise<TBackendProjectSchema> => {
       const userPrompt = createDbDesignPrompt(requirement);
       const messages = [
-        { role: 'system' as const, content: 'You are a MongoDB schema expert. Return only valid JSON.' },
+        {
+          role: 'system' as const,
+          content: 'You are a MongoDB schema expert. Return only valid JSON.',
+        },
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 8192 });

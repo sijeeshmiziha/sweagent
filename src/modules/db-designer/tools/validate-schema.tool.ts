@@ -22,7 +22,7 @@ export const validateSchemaTool = defineTool({
       if (err instanceof z.ZodError) {
         return {
           valid: false,
-          errors: err.issues.map((e) => `${e.path.join('.')}: ${e.message}`),
+          errors: err.issues.map(e => `${e.path.join('.')}: ${e.message}`),
         };
       }
       if (err instanceof SyntaxError) {

@@ -30,7 +30,10 @@ export function createRedesignDatabaseTool(model: Model) {
     handler: async ({ existingSchema, feedback }): Promise<TBackendProjectSchema> => {
       const userPrompt = createRedesignPrompt(existingSchema, feedback);
       const messages = [
-        { role: 'system' as const, content: 'You are a MongoDB schema expert. Return only valid JSON.' },
+        {
+          role: 'system' as const,
+          content: 'You are a MongoDB schema expert. Return only valid JSON.',
+        },
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 8192 });

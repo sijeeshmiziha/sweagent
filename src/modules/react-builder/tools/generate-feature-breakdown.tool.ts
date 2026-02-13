@@ -32,7 +32,10 @@ ${graphqlSchema}
 
 Respond with a structured breakdown only (no full JSON config): list modules, list Query/Mutation operations, and suggested pages for each module. Use clear headings and bullet points.`;
       const messages = [
-        { role: 'system' as const, content: 'You are a GraphQL schema analyst. Return a clear, structured text breakdown.' },
+        {
+          role: 'system' as const,
+          content: 'You are a GraphQL schema analyst. Return a clear, structured text breakdown.',
+        },
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 4096 });

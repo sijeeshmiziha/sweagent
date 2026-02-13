@@ -167,8 +167,8 @@ Always run from the **project root** so that `--env-file=.env` and module resolu
 
 ### DB Designer
 
-| Example               | Path                                           | Description                                                                 |
-| --------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Example                | Path                                           | Description                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 01 - DB Designer Agent | `examples/db-designer/01-db-designer-agent.ts` | Runs the db-designer orchestrator agent to generate a MongoDB schema from natural language requirements. Uses entity-analyzer and schema-refiner subagents. |
 
 **Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `REQUIREMENT`), `MAX_ITERATIONS`.
@@ -183,8 +183,8 @@ Always run from the **project root** so that `--env-file=.env` and module resolu
 
 ### React Builder
 
-| Example                 | Path                                             | Description                                                                 |
-| ----------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| Example                  | Path                                               | Description                                                                                                                                                    |
+| ------------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 01 - React Builder Agent | `examples/react-builder/01-react-builder-agent.ts` | Runs the react-builder orchestrator agent to generate frontend configuration JSON from a GraphQL schema. Uses graphql-analyzer and config-validator subagents. |
 
 **Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `GRAPHQL_SCHEMA`), `MAX_ITERATIONS`.

@@ -28,12 +28,7 @@ Respond with the final schema (as JSON) or a clear summary and the schema.`;
  * Run the db-designer orchestrator agent with all tools and subagents.
  */
 export async function runDbDesignerAgent(config: DbDesignerAgentConfig): Promise<AgentResult> {
-  const {
-    input,
-    model: modelConfig,
-    maxIterations = 15,
-    onStep,
-  } = config;
+  const { input, model: modelConfig, maxIterations = 15, onStep } = config;
 
   const model = createModel(modelConfig ?? { provider: 'openai', model: 'gpt-4o-mini' });
   const dbTools = createDbDesignerTools(model);

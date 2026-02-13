@@ -36,7 +36,10 @@ export const UserSchema = z.object({
     .array(SpecializationSchema)
     .optional()
     .describe('Array of specialization objects, optional'),
-  languages: z.array(z.string()).optional().describe('Array of languages the user speaks, type: string[], optional'),
+  languages: z
+    .array(z.string())
+    .optional()
+    .describe('Array of languages the user speaks, type: string[], optional'),
   about: z
     .string()
     .min(20)
@@ -45,7 +48,10 @@ export const UserSchema = z.object({
     .describe('Brief bio or description (20-500 chars), type: string, optional'),
   gender: z.string().optional().describe("User's gender, type: string, optional"),
   timezone: z.string().optional().describe("User's timezone, type: string, optional"),
-  averageRating: z.number().optional().describe('Average rating for this user, type: number, optional'),
+  averageRating: z
+    .number()
+    .optional()
+    .describe('Average rating for this user, type: number, optional'),
 });
 
 export const CreateUserInputSchema = z.object({
@@ -63,7 +69,11 @@ export const CreateUserInputSchema = z.object({
     .min(1)
     .optional()
     .describe('Array of specialization IDs, optional'),
-  languages: z.array(z.string()).min(1).optional().describe('List of languages user speaks, optional'),
+  languages: z
+    .array(z.string())
+    .min(1)
+    .optional()
+    .describe('List of languages user speaks, optional'),
   about: z
     .string()
     .min(20)

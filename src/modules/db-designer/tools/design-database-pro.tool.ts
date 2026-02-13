@@ -71,10 +71,18 @@ export function createDesignDatabaseProTool(model: Model) {
     description:
       'Generate a MongoDB schema from structured requirements (project name, goal, actors, flows, user stories with dataInvolved, technical requirements). Use for pro-level 5-phase analysis. Returns dbDesign and metadata (entitiesDetected, rolesExtracted).',
     input: structuredInputSchema,
-    handler: async (input): Promise<{ dbDesign: TBackendProjectSchema; metadata: { entitiesDetected: string[]; rolesExtracted: string[] } }> => {
+    handler: async (
+      input
+    ): Promise<{
+      dbDesign: TBackendProjectSchema;
+      metadata: { entitiesDetected: string[]; rolesExtracted: string[] };
+    }> => {
       const userPrompt = createProDbDesignPrompt(input);
       const messages = [
-        { role: 'system' as const, content: 'You are a MongoDB schema expert. Return only valid JSON.' },
+        {
+          role: 'system' as const,
+          content: 'You are a MongoDB schema expert. Return only valid JSON.',
+        },
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.2, maxOutputTokens: 16384 });

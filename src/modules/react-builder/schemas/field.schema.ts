@@ -41,7 +41,9 @@ export const FormFieldSchema = z.object({
     .union([z.string(), z.number(), z.boolean()])
     .optional()
     .describe('Default value can be string, number, or boolean'),
-  options: FieldOptionsSchema.optional().describe('Additional dynamic or static options for this field'),
+  options: FieldOptionsSchema.optional().describe(
+    'Additional dynamic or static options for this field'
+  ),
 });
 
 export const ColumnSchema = z.object({

@@ -92,16 +92,16 @@ sweagent’s architecture reflects this. **Modular tools** let you split capabil
 
 ## Features
 
-| Feature | Description |
-|--------|-------------|
-| **Multi-Provider** | Unified API for OpenAI (GPT-4o), Anthropic (Claude), and Google (Gemini). One codebase, switch providers via config. |
-| **Type-Safe Tools** | Define tools with Zod schemas; full type inference and validation before execution. |
-| **Agent Framework** | Iterative agent loop with tool calling, step callbacks, and configurable max iterations. |
-| **Subagent Orchestration** | Parent agents delegate to child agents via tools; optional tool inheritance and isolated models. |
-| **MCP Protocol** | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation. |
-| **Production Modules** | DB Designer (MongoDB schema from requirements), React Builder (frontend config from GraphQL). |
-| **Vision** | Image inputs supported via `model.generateVision()` for vision-capable models. |
-| **Zero Extra Deps** | All provider SDKs included; set API keys and run. |
+| Feature                    | Description                                                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Multi-Provider**         | Unified API for OpenAI (GPT-4o), Anthropic (Claude), and Google (Gemini). One codebase, switch providers via config. |
+| **Type-Safe Tools**        | Define tools with Zod schemas; full type inference and validation before execution.                                  |
+| **Agent Framework**        | Iterative agent loop with tool calling, step callbacks, and configurable max iterations.                             |
+| **Subagent Orchestration** | Parent agents delegate to child agents via tools; optional tool inheritance and isolated models.                     |
+| **MCP Protocol**           | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation.                |
+| **Production Modules**     | DB Designer (MongoDB schema from requirements), React Builder (frontend config from GraphQL).                        |
+| **Vision**                 | Image inputs supported via `model.generateVision()` for vision-capable models.                                       |
+| **Zero Extra Deps**        | All provider SDKs included; set API keys and run.                                                                    |
 
 ---
 
@@ -109,7 +109,7 @@ sweagent’s architecture reflects this. **Modular tools** let you split capabil
 
 ### Step 1: Prerequisites
 
-- **Node.js** >= 18.0.0  
+- **Node.js** >= 18.0.0
 - **npm** >= 8.0.0 (or yarn, pnpm, bun)
 
 ### Step 2: Install the package
@@ -252,7 +252,13 @@ console.log(result.output);
 Define subagents and expose them as tools to a parent agent:
 
 ```typescript
-import { defineSubagent, createSubagentToolSet, runAgent, createModel, createToolSet } from 'sweagent';
+import {
+  defineSubagent,
+  createSubagentToolSet,
+  runAgent,
+  createModel,
+  createToolSet,
+} from 'sweagent';
 
 const researcher = defineSubagent({
   name: 'researcher',
@@ -279,7 +285,8 @@ Use the DB Designer orchestrator to generate a MongoDB schema from natural langu
 import { runDbDesignerAgent } from 'sweagent';
 
 const result = await runDbDesignerAgent({
-  input: 'E-commerce: users, orders, products. Admins manage products. Users place orders and have a profile.',
+  input:
+    'E-commerce: users, orders, products. Admins manage products. Users place orders and have a profile.',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
   maxIterations: 15,
 });
@@ -466,11 +473,11 @@ const response = await model.invoke(messages, { tools });
 
 **Supported models (examples):**
 
-| Provider  | Models |
-| --------- | ------ |
-| OpenAI    | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
+| Provider  | Models                                                 |
+| --------- | ------------------------------------------------------ |
+| OpenAI    | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                 |
 | Anthropic | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229` |
-| Google    | `gemini-1.5-pro`, `gemini-1.5-flash` |
+| Google    | `gemini-1.5-pro`, `gemini-1.5-flash`                   |
 
 **Vision:** `model.generateVision(prompt, images, options)` for image inputs.
 
@@ -568,14 +575,14 @@ const def = defineSubagent({
 
 ### Errors
 
-| Class | When |
-| ----- | ---- |
-| **LibraryError** | Base; all others extend it. |
-| **ModelError** | Model creation or invoke failed. |
-| **ToolError** | Tool not found or tool execution failed. |
-| **ValidationError** | Zod validation failed. |
-| **AgentError** | Agent reached max iterations without completing. |
-| **SubagentError** | Subagent config or run failed. |
+| Class               | When                                             |
+| ------------------- | ------------------------------------------------ |
+| **LibraryError**    | Base; all others extend it.                      |
+| **ModelError**      | Model creation or invoke failed.                 |
+| **ToolError**       | Tool not found or tool execution failed.         |
+| **ValidationError** | Zod validation failed.                           |
+| **AgentError**      | Agent reached max iterations without completing. |
+| **SubagentError**   | Subagent config or run failed.                   |
 
 All accept an optional `cause` for chaining.
 
@@ -637,12 +644,12 @@ npm run example -- examples/db-designer/01-db-designer-agent.ts
 npm run example -- examples/react-builder/01-react-builder-agent.ts
 ```
 
-| Group | Examples | Description |
-| ----- | -------- | ----------- |
-| **Core** | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent, 05 Subagents | Models, tools, agents, subagents |
-| **Hello World** | 01 Hello World | Minimal agent with greeting tool |
-| **DB Designer** | 01 DB Designer Agent | MongoDB schema from natural language |
-| **React Builder** | 01 React Builder Agent | Frontend config from GraphQL |
+| Group             | Examples                                                                             | Description                          |
+| ----------------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
+| **Core**          | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent, 05 Subagents | Models, tools, agents, subagents     |
+| **Hello World**   | 01 Hello World                                                                       | Minimal agent with greeting tool     |
+| **DB Designer**   | 01 DB Designer Agent                                                                 | MongoDB schema from natural language |
+| **React Builder** | 01 React Builder Agent                                                               | Frontend config from GraphQL         |
 
 ---
 
@@ -650,11 +657,11 @@ npm run example -- examples/react-builder/01-react-builder-agent.ts
 
 ### Environment variables
 
-| Variable | Purpose |
-| -------- | ------- |
-| `OPENAI_API_KEY` | OpenAI API key |
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Google AI API key |
+| Variable                               | Purpose                                 |
+| -------------------------------------- | --------------------------------------- |
+| `OPENAI_API_KEY`                       | OpenAI API key                          |
+| `ANTHROPIC_API_KEY`                    | Anthropic API key                       |
+| `GOOGLE_GENERATIVE_AI_API_KEY`         | Google AI API key                       |
 | `MCP_URL` / `MCP_COMMAND` / `MCP_ARGS` | MCP client (when using `resolveConfig`) |
 
 For examples: `PROVIDER`, `MODEL`, `AGENT_INPUT`, `REQUIREMENT`, `MAX_ITERATIONS` are used by example scripts.
@@ -727,19 +734,19 @@ npm run lint
 npm run build
 ```
 
-| Command | Description |
-| ------- | ----------- |
-| `npm run dev` | Watch build |
-| `npm test` | Unit tests |
-| `npm run test:integration` | Integration tests |
-| `npm run test:all` | All tests |
-| `npm run lint` / `npm run lint:fix` | ESLint |
-| `npm run typecheck` | TypeScript |
-| `npm run build` | Production build |
+| Command                             | Description       |
+| ----------------------------------- | ----------------- |
+| `npm run dev`                       | Watch build       |
+| `npm test`                          | Unit tests        |
+| `npm run test:integration`          | Integration tests |
+| `npm run test:all`                  | All tests         |
+| `npm run lint` / `npm run lint:fix` | ESLint            |
+| `npm run typecheck`                 | TypeScript        |
+| `npm run build`                     | Production build  |
 
 **Support**
 
-- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) – Bugs and features  
+- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) – Bugs and features
 - [GitHub Discussions](https://github.com/sijeeshmiziha/sweagent/discussions) – Questions
 
 ---

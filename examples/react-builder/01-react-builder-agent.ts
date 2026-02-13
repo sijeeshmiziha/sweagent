@@ -23,8 +23,7 @@ async function main() {
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
-  const agentInput =
-    process.env.AGENT_INPUT ?? process.env.GRAPHQL_SCHEMA ?? DEFAULT_INPUT;
+  const agentInput = process.env.AGENT_INPUT ?? process.env.GRAPHQL_SCHEMA ?? DEFAULT_INPUT;
   const maxIterations = Number(process.env.MAX_ITERATIONS ?? '10') || 10;
 
   const result = await runReactBuilderAgent({

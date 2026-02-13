@@ -28,11 +28,11 @@ export const ListingPageApiSchema = z.object({
     .describe('Type of API call for CRUD operations'),
   graphqlHook: z
     .string()
-    .describe(
-      'Name of the GraphQL hook (e.g. useGetAllUserQuery, useCreateUserMutation)'
-    ),
+    .describe('Name of the GraphQL hook (e.g. useGetAllUserQuery, useCreateUserMutation)'),
   queryString: z.string().describe('Actual GraphQL query string'),
-  responseType: ApiResponseTypeSchema.describe('Optional schema describing shape of the API response'),
+  responseType: ApiResponseTypeSchema.describe(
+    'Optional schema describing shape of the API response'
+  ),
 });
 
 export const AuthPageApiSchema = z.object({
@@ -41,16 +41,16 @@ export const AuthPageApiSchema = z.object({
     .describe('Type of API call'),
   graphqlHook: z.string().describe('Name of the GraphQL hook (e.g. useLoginMutation)'),
   queryString: z.string().describe('Actual GraphQL query string'),
-  responseType: ApiResponseTypeSchema.describe('Optional schema describing shape of the API response'),
+  responseType: ApiResponseTypeSchema.describe(
+    'Optional schema describing shape of the API response'
+  ),
 });
 
 export const DrawerSchema = z.object({
   title: z.string().describe('Title displayed on the drawer'),
   graphqlHook: z
     .string()
-    .describe(
-      'Name of the GraphQL hook (e.g. useCreateUserMutation, useDeleteOneUserMutation)'
-    ),
+    .describe('Name of the GraphQL hook (e.g. useCreateUserMutation, useDeleteOneUserMutation)'),
   fields: z.array(FormFieldSchema).describe('List of fields displayed within the drawer'),
 });
 
@@ -64,7 +64,10 @@ export const AuthPageSchema = z.object({
   route: z.string().describe("URL route for this page (e.g., '/login')"),
   isPrivate: z.boolean().describe('Whether this page requires an authenticated session'),
   api: z.array(AuthPageApiSchema).describe('List of API calls involved in this page'),
-  fields: z.array(FormFieldSchema).optional().describe('Optional form fields needed on this auth page'),
+  fields: z
+    .array(FormFieldSchema)
+    .optional()
+    .describe('Optional form fields needed on this auth page'),
 });
 
 export const ListingPageSchema = z.object({
@@ -81,9 +84,6 @@ export const ListingPageSchema = z.object({
   drawerUpdate: DrawerSchema.describe('Drawer configuration for editing existing records'),
 });
 
-export const PageSchema = z.discriminatedUnion('type', [
-  AuthPageSchema,
-  ListingPageSchema,
-]);
+export const PageSchema = z.discriminatedUnion('type', [AuthPageSchema, ListingPageSchema]);
 
 export type TPageSchema = z.infer<typeof PageSchema>;

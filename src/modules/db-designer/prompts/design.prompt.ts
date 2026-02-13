@@ -2,7 +2,13 @@
  * Design prompts - legacy and pro-level, plus structured requirement formatters
  */
 
-import type { Actor, ExtractedFlow, ExtractedStory, StructuredRequirementsInput, TechnicalRequirements } from '../types';
+import type {
+  Actor,
+  ExtractedFlow,
+  ExtractedStory,
+  StructuredRequirementsInput,
+  TechnicalRequirements,
+} from '../types';
 import { DB_DESIGN_SYSTEM_PROMPT } from './system.prompt';
 
 /**
@@ -34,7 +40,7 @@ export function formatUserTypes(actors: Actor[]): string {
   }
   return actors
     .map((actor, index) => {
-      const goals = actor.goals.filter((g) => g.trim()).join('\n   - ');
+      const goals = actor.goals.filter(g => g.trim()).join('\n   - ');
       return `### ${index + 1}. ${actor.name}
 **Description:** ${actor.description}
 **Goals:**
@@ -52,7 +58,7 @@ export function formatUserFlows(flows: ExtractedFlow[], actors: Actor[]): string
   }
   return flows
     .map((flow, index) => {
-      const actor = actors.find((a) => a.id === flow.actorId);
+      const actor = actors.find(a => a.id === flow.actorId);
       const actorName = actor?.name || 'User';
       return `### ${index + 1}. ${flow.name}
 **Actor:** ${actorName}
@@ -82,27 +88,27 @@ export function formatUserStories(stories: ExtractedStory[], flows: ExtractedFlo
     if (flowStories.length === 0) continue;
     sections.push(`### Flow: ${flow.name}\n`);
     for (const story of flowStories) {
-      const preconditions = story.preconditions.filter((p) => p.trim());
-      const postconditions = story.postconditions.filter((p) => p.trim());
-      const dataInvolved = story.dataInvolved.filter((d) => d.trim());
+      const preconditions = story.preconditions.filter(p => p.trim());
+      const postconditions = story.postconditions.filter(p => p.trim());
+      const dataInvolved = story.dataInvolved.filter(d => d.trim());
       let storyText = `**As a** ${story.actor}, **I want to** ${story.action}, **so that** ${story.benefit}\n`;
       if (preconditions.length > 0) {
-        storyText += `\n**Preconditions:**\n${preconditions.map((p) => `- ${p}`).join('\n')}\n`;
+        storyText += `\n**Preconditions:**\n${preconditions.map(p => `- ${p}`).join('\n')}\n`;
       }
       if (postconditions.length > 0) {
-        storyText += `\n**Postconditions:**\n${postconditions.map((p) => `- ${p}`).join('\n')}\n`;
+        storyText += `\n**Postconditions:**\n${postconditions.map(p => `- ${p}`).join('\n')}\n`;
       }
       if (dataInvolved.length > 0) {
-        storyText += `\n**Data Involved (IMPORTANT - these indicate entities/fields):**\n${dataInvolved.map((d) => `- ${d}`).join('\n')}\n`;
+        storyText += `\n**Data Involved (IMPORTANT - these indicate entities/fields):**\n${dataInvolved.map(d => `- ${d}`).join('\n')}\n`;
       }
       sections.push(storyText);
     }
   }
-  const orphanStories = stories.filter((s) => !flows.some((f) => f.id === s.flowId));
+  const orphanStories = stories.filter(s => !flows.some(f => f.id === s.flowId));
   if (orphanStories.length > 0) {
     sections.push(`### Other Stories\n`);
     for (const story of orphanStories) {
-      const dataInvolved = story.dataInvolved.filter((d) => d.trim());
+      const dataInvolved = story.dataInvolved.filter(d => d.trim());
       let storyText = `**As a** ${story.actor}, **I want to** ${story.action}, **so that** ${story.benefit}\n`;
       if (dataInvolved.length > 0) {
         storyText += `\n**Data Involved:** ${dataInvolved.join(', ')}\n`;
@@ -162,7 +168,7 @@ export function extractDataEntities(stories: ExtractedStory[]): string[] {
  * Extract roles from actors for RBAC configuration
  */
 export function extractRoles(actors: Actor[]): string[] {
-  return actors.map((a) => a.name.toLowerCase().replaceAll(/\s+/g, '_'));
+  return actors.map(a => a.name.toLowerCase().replaceAll(/\s+/g, '_'));
 }
 
 /**

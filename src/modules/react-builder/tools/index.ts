@@ -10,7 +10,10 @@ import { createGenerateFeatureBreakdownTool } from './generate-feature-breakdown
 
 export { validateFrontendConfigTool } from './validate-frontend-config.tool';
 export { createGenerateFrontendTool } from './generate-frontend.tool';
-export { createGenerateFeatureBreakdownTool, type FeatureBreakdownResult } from './generate-feature-breakdown.tool';
+export {
+  createGenerateFeatureBreakdownTool,
+  type FeatureBreakdownResult,
+} from './generate-feature-breakdown.tool';
 
 export function createReactBuilderTools(model: Model) {
   return createToolSet({
