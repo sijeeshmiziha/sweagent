@@ -23,6 +23,8 @@ This directory contains copy-pasteable scripts you can run from the project root
 - [Available Examples](#available-examples)
   - [Core](#core)
   - [Hello World](#hello-world)
+  - [DB Designer](#db-designer)
+  - [React Builder](#react-builder)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -111,7 +113,7 @@ Each example file includes a **Setup** and **Run** block in its header showing t
 
 ### Interactive launcher (recommended)
 
-Pick a folder (Core, Hello World), then an example. You'll be prompted for any inputs (prompt, agent input, etc.):
+Pick a folder (Core, Hello World, DB Designer, React Builder), then an example. You'll be prompted for any inputs (prompt, agent input, etc.):
 
 ```bash
 npm run example:interactive
@@ -159,6 +161,38 @@ Always run from the **project root** so that `--env-file=.env` and module resolu
 **Example output**: The agent uses the greeting tool and returns a friendly message, e.g. `"Hello, World!"` or a custom name you provide.
 
 **Related**: [Core 03 - Tool Calling](core/03-tool-calling.ts) for a calculator tool; [Core 04 - Agent with Multiple Tools](core/04-agent-with-multiple-tools.ts) for a richer agent.
+
+---
+
+### DB Designer
+
+| Example               | Path                                           | Description                                                                 |
+| --------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| 01 - DB Designer Agent | `examples/db-designer/01-db-designer-agent.ts` | Runs the db-designer orchestrator agent to generate a MongoDB schema from natural language requirements. Uses entity-analyzer and schema-refiner subagents. |
+
+**Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `REQUIREMENT`), `MAX_ITERATIONS`.
+
+**Run**: `npx tsx examples/db-designer/01-db-designer-agent.ts` (from project root).
+
+**Required**: `OPENAI_API_KEY`.
+
+**Example output**: The agent produces a MongoDB project schema (modules, fields, relationships) as JSON or text based on your requirement (e.g. "E-commerce: users, orders, products...").
+
+---
+
+### React Builder
+
+| Example                 | Path                                             | Description                                                                 |
+| ----------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| 01 - React Builder Agent | `examples/react-builder/01-react-builder-agent.ts` | Runs the react-builder orchestrator agent to generate frontend configuration JSON from a GraphQL schema. Uses graphql-analyzer and config-validator subagents. |
+
+**Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `GRAPHQL_SCHEMA`), `MAX_ITERATIONS`.
+
+**Run**: `npx tsx examples/react-builder/01-react-builder-agent.ts` (from project root).
+
+**Required**: `OPENAI_API_KEY`.
+
+**Example output**: The agent produces a frontend app config (app, modules, pages, fields, API hooks) as JSON based on your GraphQL schema.
 
 ---
 

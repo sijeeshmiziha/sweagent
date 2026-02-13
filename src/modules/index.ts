@@ -3,3 +3,5 @@
  */
 
 export * from './hello-world';
+export * from './db-designer';
+export * from './react-builder';

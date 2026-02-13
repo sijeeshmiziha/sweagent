@@ -17,7 +17,7 @@ const projectRoot = resolve(currentDir, '..');
 interface ExampleEntry {
   value: string;
   name: string;
-  group: 'Core' | 'Hello World';
+  group: 'Core' | 'Hello World' | 'DB Designer' | 'React Builder';
   envVars: string[];
 }
 
@@ -57,6 +57,18 @@ const EXAMPLES: ExampleEntry[] = [
     name: '01 - Hello World',
     group: 'Hello World',
     envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'SYSTEM_PROMPT', 'MAX_ITERATIONS'],
+  },
+  {
+    value: 'examples/db-designer/01-db-designer-agent.ts',
+    name: '01 - DB Designer Agent',
+    group: 'DB Designer',
+    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+  },
+  {
+    value: 'examples/react-builder/01-react-builder-agent.ts',
+    name: '01 - React Builder Agent',
+    group: 'React Builder',
+    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
   },
 ];
 
@@ -104,7 +116,7 @@ function runExample(scriptPath: string, envOverrides: Record<string, string>): v
   });
 }
 
-const GROUPS = ['Core', 'Hello World'] as const;
+const GROUPS = ['Core', 'Hello World', 'DB Designer', 'React Builder'] as const;
 type Group = (typeof GROUPS)[number];
 
 async function main(): Promise<void> {
