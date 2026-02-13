@@ -54,7 +54,7 @@ New to the project? Look for issues labeled:
 | Fix a typo or clarify docs        | [README.md](../README.md), [examples/README.md](../examples/README.md), or JSDoc in `src/` |
 | Add a test for existing code      | `tests/unit/`, `tests/tools/`, or `tests/core/`                                            |
 | Improve an example                | `examples/core/` or `examples/hello-world/`                                                |
-| Report a bug or suggest a feature | [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues)                       |
+| Report a bug or suggest a feature | [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues)                          |
 
 ---
 

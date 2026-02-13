@@ -82,8 +82,8 @@ console.log(result.output);
 
 | Feature             | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
-| **Multi-Provider**  | Support for OpenAI (GPT-4o), Anthropic (Claude), and Google (Gemini)      |
-| **Tool System**     | Define custom tools with Zod schema validation and type inference          |
+| **Multi-Provider**  | Support for OpenAI (GPT-4o), Anthropic (Claude), and Google (Gemini)        |
+| **Tool System**     | Define custom tools with Zod schema validation and type inference           |
 | **Agent Framework** | Build autonomous agents with tool calling, reasoning, and iteration control |
 | **Type-Safe**       | Full TypeScript support with comprehensive type definitions                 |
 | **Zero Config**     | Works out of the box with environment variables                             |
@@ -370,10 +370,10 @@ npm run example -- examples/core/01-basic-model.ts
 npm run example -- examples/hello-world/01-hello-world.ts
 ```
 
-| Group           | Examples                                               | Description           |
-| --------------- | ------------------------------------------------------ | --------------------- |
-| **Core**        | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent | Models, agents, tools |
-| **Hello World** | 01 Hello World                                         | Minimal agent with greeting tool |
+| Group           | Examples                                                               | Description                      |
+| --------------- | ---------------------------------------------------------------------- | -------------------------------- |
+| **Core**        | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent | Models, agents, tools            |
+| **Hello World** | 01 Hello World                                                         | Minimal agent with greeting tool |
 
 ---
 

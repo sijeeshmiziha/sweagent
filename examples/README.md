@@ -86,11 +86,11 @@ import { createModel, runAgent, defineTool } from 'sweagent';
 
 Pass keys via **environment variables** (recommended) or explicitly in config:
 
-| Service   | Env variable                             | Example in code                                                                                 |
-| --------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| OpenAI    | `OPENAI_API_KEY`                         | `createModel({ provider: 'openai', model: 'gpt-4o-mini', apiKey: process.env.OPENAI_API_KEY })` |
-| Anthropic | `ANTHROPIC_API_KEY`                      | Same pattern with `provider: 'anthropic'`                                                       |
-| Google    | `GOOGLE_GENERATIVE_AI_API_KEY`           | Same pattern with `provider: 'google'`                                                           |
+| Service   | Env variable                   | Example in code                                                                                 |
+| --------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| OpenAI    | `OPENAI_API_KEY`               | `createModel({ provider: 'openai', model: 'gpt-4o-mini', apiKey: process.env.OPENAI_API_KEY })` |
+| Anthropic | `ANTHROPIC_API_KEY`            | Same pattern with `provider: 'anthropic'`                                                       |
+| Google    | `GOOGLE_GENERATIVE_AI_API_KEY` | Same pattern with `provider: 'google'`                                                          |
 
 ### Model selection
 
