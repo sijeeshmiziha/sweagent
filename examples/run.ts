@@ -17,7 +17,7 @@ const projectRoot = resolve(currentDir, '..');
 interface ExampleEntry {
   value: string;
   name: string;
-  group: 'Core' | 'Hello World' | 'DB Designer' | 'React Builder';
+  group: 'Core' | 'Hello World' | 'DB Designer' | 'React Builder' | 'Requirement Gatherer';
   envVars: string[];
 }
 
@@ -38,37 +38,43 @@ const EXAMPLES: ExampleEntry[] = [
     value: 'examples/core/03-tool-calling.ts',
     name: '03 - Tool Calling',
     group: 'Core',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'PROMPT', 'MAX_ITERATIONS'],
   },
   {
     value: 'examples/core/04-agent-with-multiple-tools.ts',
     name: '04 - Agent with Multiple Tools',
     group: 'Core',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'PROMPT', 'MAX_ITERATIONS'],
   },
   {
     value: 'examples/core/05-subagents.ts',
     name: '05 - Subagents',
     group: 'Core',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'PROMPT', 'MAX_ITERATIONS'],
   },
   {
     value: 'examples/hello-world/01-hello-world.ts',
     name: '01 - Hello World',
     group: 'Hello World',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'SYSTEM_PROMPT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'PROMPT', 'SYSTEM_PROMPT', 'MAX_ITERATIONS'],
   },
   {
     value: 'examples/db-designer/01-db-designer-agent.ts',
     name: '01 - DB Designer Agent',
     group: 'DB Designer',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT', 'MAX_ITERATIONS'],
   },
   {
     value: 'examples/react-builder/01-react-builder-agent.ts',
     name: '01 - React Builder Agent',
     group: 'React Builder',
-    envVars: ['PROVIDER', 'MODEL', 'AGENT_INPUT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL', 'GRAPHQL_SCHEMA', 'MAX_ITERATIONS'],
+  },
+  {
+    value: 'examples/requirement-gatherer/01-requirement-gatherer-agent.ts',
+    name: '01 - Requirement Gatherer Agent',
+    group: 'Requirement Gatherer',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT', 'MAX_ITERATIONS'],
   },
 ];
 
@@ -77,9 +83,10 @@ const ENV_VAR_LABELS: Record<string, string> = {
   MODEL: 'Model name (e.g. gpt-4o-mini)',
   PROMPT: 'User prompt',
   TEMPERATURE: 'Temperature (0-2)',
-  AGENT_INPUT: 'Agent input / task',
+  GRAPHQL_SCHEMA: 'GraphQL schema',
   SYSTEM_PROMPT: 'System prompt',
   MAX_ITERATIONS: 'Max agent iterations',
+  REQUIREMENT: 'Project info / natural language requirement',
 };
 
 const ENV_VAR_DEFAULTS: Record<string, string> = {
@@ -88,9 +95,13 @@ const ENV_VAR_DEFAULTS: Record<string, string> = {
   PROMPT: 'Explain what TypeScript is in one sentence.',
   TEMPERATURE: '0.7',
   AGENT_INPUT: 'What is 25 multiplied by 4?',
+  REQUIREMENT:
+    'Project: Task Manager\nGoal: Let users create tasks, assign them to team members, and track progress.\nFeatures: User auth, task CRUD, assignments, due dates, status (todo/in progress/done), simple dashboard.',
   SYSTEM_PROMPT:
     'You are a friendly greeter. Use the hello_world tool to greet each person the user mentions.',
   MAX_ITERATIONS: '5',
+  REPO_URL: 'https://github.com/sweagent/sweagent',
+  TARGET_DIR: 'examples/db-designer',
 };
 
 async function promptForEnvVars(envVars: string[]): Promise<Record<string, string>> {
@@ -116,7 +127,13 @@ function runExample(scriptPath: string, envOverrides: Record<string, string>): v
   });
 }
 
-const GROUPS = ['Core', 'Hello World', 'DB Designer', 'React Builder'] as const;
+const GROUPS = [
+  'Core',
+  'Hello World',
+  'DB Designer',
+  'React Builder',
+  'Requirement Gatherer',
+] as const;
 type Group = (typeof GROUPS)[number];
 
 async function main(): Promise<void> {
