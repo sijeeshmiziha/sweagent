@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="../README.md">← Main README</a> •
+  <a href="../README.md#getting-started-tutorial">Tutorial</a> •
   <a href="../README.md#api-reference">API Reference</a> •
   <a href="../CONTRIBUTING.md">Contributing</a>
 </p>
@@ -226,10 +227,16 @@ For long-running agent calls, the default timeout may be too low. Increase timeo
 
 ## Next Steps
 
-- [Main README](../README.md) – Full API documentation
-- [API Reference](../README.md#api-reference) – Models, tools, agents
+- [Main README](../README.md) – Overview, installation, and full documentation
+- [Getting Started Tutorial](../README.md#getting-started-tutorial) – Step-by-step from model to agent to subagents
+- [API Reference](../README.md#api-reference) – Models, tools, agents, subagents, MCP
+- [Production Modules](../README.md#production-modules) – DB Designer and React Builder
 - [Contributing Guide](../CONTRIBUTING.md) – How to contribute
 
 <p align="center">
   <a href="../README.md">Back to Main README</a>
+</p>
+
+<p align="center">
+  Made with ❤️ by the CompilersLab team!
 </p>
