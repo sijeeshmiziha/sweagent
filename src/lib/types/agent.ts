@@ -5,7 +5,7 @@
 
 import type { Tool } from 'ai';
 import type { Model } from './model';
-import type { ModelMessage } from './common';
+import type { Logger, ModelMessage } from './common';
 import type { LanguageModelUsage } from './model';
 import type { ModelToolCall } from './model';
 
@@ -26,6 +26,16 @@ export interface AgentToolResult {
 }
 
 /**
+ * Observer for agent events (step, tool execution, error).
+ * Multiple observers can be attached via AgentConfig.observers.
+ */
+export interface AgentObserver {
+  onStep?(step: AgentStep): void;
+  onToolExecution?(toolName: string, result: unknown): void;
+  onError?(error: Error): void;
+}
+
+/**
  * Configuration for running an agent
  */
 export interface AgentConfig {
@@ -41,6 +51,10 @@ export interface AgentConfig {
   maxIterations?: number;
   /** Callback for each step */
   onStep?: (step: AgentStep) => void;
+  /** Optional observers for step, tool execution, and error events */
+  observers?: AgentObserver[];
+  /** Optional logger for agent execution */
+  logger?: Logger;
 }
 
 /**

@@ -1,6 +1,4 @@
 /**
  * requirement-gatherer subagents
+ * (Design stage uses runAgent with tools directly; no subagents.)
  */
-
-export { infoProcessorSubagent } from './info-processor.subagent';
-export { createRequirementValidatorSubagent } from './requirement-validator.subagent';

@@ -8,6 +8,7 @@ import type { ModelToolCall } from '../types/model';
 import { AgentError } from '../utils/errors';
 import { sumTokenUsage } from '../utils/utils';
 import { executeToolByName } from '../tools';
+import { notifyObserversStep, notifyObserversTool, notifyObserversError } from './agent-observers';
 
 /**
  * Run an agent with the given configuration.
@@ -30,7 +31,18 @@ import { executeToolByName } from '../tools';
  * ```
  */
 export async function runAgent(config: AgentConfig): Promise<AgentResult> {
-  const { model, tools, systemPrompt, input, maxIterations = 10, onStep } = config;
+  const {
+    model,
+    tools,
+    systemPrompt,
+    input,
+    maxIterations = 10,
+    onStep,
+    observers,
+    logger,
+  } = config;
+
+  logger?.info('Starting agent', { maxIterations });
 
   const messages: ModelMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -40,6 +52,11 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
   const steps: AgentStep[] = [];
 
   for (let iteration = 0; iteration < maxIterations; iteration++) {
+    if (iteration > 0 && iteration >= maxIterations - 2) {
+      logger?.warn('Approaching max iterations', { iteration, maxIterations });
+    }
+    logger?.debug('Agent iteration', { iteration });
+
     const response = await model.invoke(messages, { tools });
 
     const step: AgentStep = {
@@ -49,9 +66,18 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
       usage: response.usage,
     };
 
+    if (response.text) {
+      logger?.debug('Model response', { iteration, textLength: response.text.length });
+    }
+
     if (!response.toolCalls?.length) {
       steps.push(step);
       onStep?.(step);
+      notifyObserversStep(observers, step);
+      logger?.info('Agent completed', {
+        steps: steps.length,
+        totalUsage: sumTokenUsage(steps.map(s => s.usage)),
+      });
       return {
         output: response.text,
         steps,
@@ -59,6 +85,14 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
         messages,
       };
     }
+
+    logger?.debug('Tool calls', {
+      iteration,
+      toolCalls: response.toolCalls.map((tc: ModelToolCall) => ({
+        name: tc.toolName,
+        toolCallId: tc.toolCallId,
+      })),
+    });
 
     const assistantContent = [
       ...(response.text ? [{ type: 'text' as const, text: response.text }] : []),
@@ -76,6 +110,7 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
     for (const toolCall of response.toolCalls) {
       const execResult = await executeToolByName(tools, toolCall.toolName, toolCall.input, {
         toolCallId: toolCall.toolCallId,
+        logger,
       });
 
       const agentResult: AgentToolResult = {
@@ -85,6 +120,7 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
         isError: !execResult.success,
       };
       toolResults.push(agentResult);
+      notifyObserversTool(observers, toolCall.toolName, agentResult.output);
 
       const outputVal = agentResult.isError
         ? { type: 'error-text' as const, value: String(agentResult.output) }
@@ -112,10 +148,14 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
     step.toolResults = toolResults;
     steps.push(step);
     onStep?.(step);
+    notifyObserversStep(observers, step);
   }
 
-  throw new AgentError(
+  const err = new AgentError(
     `Agent reached maximum iterations (${maxIterations}) without completing`,
     maxIterations - 1
   );
+  notifyObserversError(observers, err);
+  logger?.error('Agent failed: max iterations reached', { maxIterations, error: err });
+  throw err;
 }

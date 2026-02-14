@@ -1,9 +1,8 @@
 /**
- * Example: Requirement Gatherer Agent
+ * Example: Requirement Gatherer Agent (chat-based)
  *
- * Runs the requirement-gatherer orchestrator agent to produce structured requirements
- * (actors, flows, stories, modules) from project info. Uses info-processor and
- * requirement-validator subagents.
+ * Interactive multi-turn chat using processRequirementChat. Persists context
+ * between turns; produces a final requirement document (database + API design).
  *
  * Setup:
  *   npm install sweagent
@@ -11,74 +10,64 @@
  *
  * Run:
  *   npx tsx 01-requirement-gatherer-agent.ts
+ *
+ * Or one-shot (no prompts):
+ *   REQUIREMENT="Task manager app with REST API" npx tsx 01-requirement-gatherer-agent.ts
  */
-import { runRequirementGathererAgent } from 'sweagent';
-import type { AgentStep } from 'sweagent';
-
-const DEFAULT_INPUT = `Project: Task Manager
-Goal: Let users create tasks, assign them to team members, and track progress.
-Features: User auth, task CRUD, assignments, due dates, status (todo/in progress/done), simple dashboard.`;
+import { input } from '@inquirer/prompts';
+import { processRequirementChat } from 'sweagent';
+import type { RequirementContext } from 'sweagent';
 
 async function main() {
-  console.log('=== Requirement Gatherer Agent ===\n');
+  console.log('=== Requirement Gatherer (Chat) ===\n');
+  console.log('Describe your project. Say "continue" to advance, or answer any questions.\n');
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
-  const agentInput = process.env.AGENT_INPUT ?? process.env.REQUIREMENT ?? DEFAULT_INPUT;
-  const maxIterations = Number(process.env.MAX_ITERATIONS ?? '15') || 15;
+  let context: RequirementContext | null = null;
 
-  const result = await runRequirementGathererAgent({
-    input: agentInput,
-    model: { provider, model: modelName },
-    maxIterations,
-    onStep: (step: AgentStep) => {
-      const stepNum = step.iteration + 1;
-
-      if (step.toolCalls?.length) {
-        for (const tc of step.toolCalls) {
-          const args = tc.input as Record<string, unknown>;
-          const preview =
-            typeof args.prompt === 'string'
-              ? args.prompt.slice(0, 60) + (args.prompt.length > 60 ? '...' : '')
-              : typeof args.projectName === 'string'
-                ? `projectName=${args.projectName}`
-                : JSON.stringify(args).slice(0, 80);
-          console.log(`  [Step ${stepNum}] Tool: ${tc.toolName}(${preview})`);
-        }
-      } else if (step.content) {
-        const preview = step.content.slice(0, 100) ?? '';
-        console.log(
-          `  [Step ${stepNum}] Response: ${preview}${step.content.length > 100 ? '...' : ''}`
-        );
+  const processTurn = async (userMessage: string): Promise<boolean> => {
+    const result = await processRequirementChat(userMessage, context, {
+      model: { provider, model: modelName },
+    });
+    context = result.context;
+    console.log('\nAssistant:', result.message);
+    if (result.questions?.length) {
+      console.log('\nQuestions:');
+      for (const q of result.questions) {
+        console.log(`  - ${q.question}`);
+        if (q.suggestions?.length) console.log(`    Suggestions: ${q.suggestions.join(', ')}`);
       }
+    }
+    if (result.finalRequirement) {
+      console.log('\n--- Final requirement document ---');
+      console.log(JSON.stringify(result.finalRequirement, null, 2));
+      return true;
+    }
+    return false;
+  };
 
-      if (step.toolResults?.length) {
-        for (const tr of step.toolResults) {
-          const status = tr.isError ? 'ERROR' : 'OK';
-          const outPreview =
-            typeof tr.output === 'string'
-              ? tr.output.slice(0, 80) + (tr.output.length > 80 ? '...' : '')
-              : JSON.stringify(tr.output).slice(0, 80);
-          console.log(`           -> ${tr.toolName} [${status}]: ${outPreview}`);
-        }
-      }
+  const envInput = process.env.REQUIREMENT ?? process.env.AGENT_INPUT;
+  if (envInput) {
+    const done = await processTurn(envInput);
+    if (done) return;
+    if (!context) return;
+    let turns = 0;
+    while (turns < 10) {
+      const done = await processTurn('continue');
+      if (done) return;
+      turns++;
+    }
+    console.log('\nStopped after 10 turns. Use interactive mode for more.');
+    return;
+  }
 
-      if (step.usage) {
-        console.log(
-          `           tokens: input=${step.usage.inputTokens ?? 0} output=${step.usage.outputTokens ?? 0}`
-        );
-      }
-      console.log();
-    },
-  });
-
-  console.log('--- Final output ---');
-  console.log(result.output);
-  console.log(`\nTotal steps: ${result.steps.length}`);
-  if (result.totalUsage) {
-    console.log(
-      `Total tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
-    );
+  while (true) {
+    const line = await input({ message: 'You:' });
+    const trimmed = line.trim();
+    if (trimmed === 'exit' || trimmed === 'quit') break;
+    const done = await processTurn(trimmed);
+    if (done) break;
   }
 }
 

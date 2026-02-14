@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import { tool } from 'ai';
 import type { Tool, ToolExecutionOptions } from 'ai';
+import type { Logger } from '../types/common';
 import type { ToolConfig, ToolContext, ToolExecutionResult } from '../types/tool';
 import { ToolError } from '../utils/errors';
 
@@ -49,21 +50,41 @@ export function getTool(toolSet: ToolSet, name: string): Tool | undefined {
   return toolSet[name];
 }
 
+export interface ExecuteToolOptions {
+  toolCallId?: string;
+  abortSignal?: AbortSignal;
+  logger?: Logger;
+}
+
 export async function executeTool<TInput, TOutput>(
   toolImpl: Tool<TInput, TOutput>,
   input: TInput,
-  options?: { toolCallId?: string; abortSignal?: AbortSignal }
+  options?: ExecuteToolOptions
 ): Promise<ToolExecutionResult<TOutput>> {
-  if (!toolImpl.execute) return { success: false, error: 'Tool has no execute function' };
+  const { logger } = options ?? {};
+  const toolName =
+    'name' in toolImpl && typeof toolImpl.name === 'string' ? toolImpl.name : 'unknown';
+
+  if (!toolImpl.execute) {
+    logger?.error('Tool has no execute function', { toolName });
+    return { success: false, error: 'Tool has no execute function' };
+  }
+  logger?.debug('Executing tool', { toolName, toolCallId: options?.toolCallId });
   try {
     const out = await toolImpl.execute(input, {
       toolCallId: options?.toolCallId ?? '',
       messages: [],
       abortSignal: options?.abortSignal,
     } as ToolExecutionOptions);
+    logger?.info('Tool completed', { toolName, toolCallId: options?.toolCallId });
     return { success: true, output: out as TOutput };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    logger?.error('Tool failed', {
+      toolName,
+      toolCallId: options?.toolCallId,
+      error: e instanceof Error ? e : { message: msg },
+    });
     return { success: false, error: msg };
   }
 }
@@ -72,10 +93,13 @@ export async function executeToolByName(
   tools: ToolSet,
   name: string,
   input: unknown,
-  options?: { toolCallId?: string; abortSignal?: AbortSignal }
+  options?: ExecuteToolOptions
 ): Promise<ToolExecutionResult> {
   const toolImpl = tools[name];
-  if (!toolImpl) throw new ToolError(`Tool not found: ${name}`);
+  if (!toolImpl) {
+    options?.logger?.error('Tool not found', { name });
+    throw new ToolError(`Tool not found: ${name}`);
+  }
   return executeTool(toolImpl, input, options);
 }
 

@@ -86,7 +86,7 @@ const ENV_VAR_LABELS: Record<string, string> = {
   GRAPHQL_SCHEMA: 'GraphQL schema',
   SYSTEM_PROMPT: 'System prompt',
   MAX_ITERATIONS: 'Max agent iterations',
-  REQUIREMENT: 'Project info / natural language requirement',
+  REQUIREMENT: 'Project info / natural language requirement (leave empty for interactive chat)',
 };
 
 const ENV_VAR_DEFAULTS: Record<string, string> = {
@@ -104,11 +104,18 @@ const ENV_VAR_DEFAULTS: Record<string, string> = {
   TARGET_DIR: 'examples/db-designer',
 };
 
-async function promptForEnvVars(envVars: string[]): Promise<Record<string, string>> {
+async function promptForEnvVars(
+  envVars: string[],
+  entry?: ExampleEntry
+): Promise<Record<string, string>> {
   const collected: Record<string, string> = {};
+  const isRequirementGatherer = entry?.group === 'Requirement Gatherer';
   for (const key of envVars) {
     const label = ENV_VAR_LABELS[key] ?? key;
-    const defaultValue = ENV_VAR_DEFAULTS[key] ?? '';
+    let defaultValue = ENV_VAR_DEFAULTS[key] ?? '';
+    if (isRequirementGatherer && key === 'REQUIREMENT') {
+      defaultValue = '';
+    }
     const value = await input({
       message: label,
       default: defaultValue,
@@ -154,7 +161,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const envOverrides = entry.envVars.length > 0 ? await promptForEnvVars(entry.envVars) : {};
+  const envOverrides = entry.envVars.length > 0 ? await promptForEnvVars(entry.envVars, entry) : {};
 
   console.log(`\nRunning: ${entry.name}\n`);
   runExample(entry.value, envOverrides);

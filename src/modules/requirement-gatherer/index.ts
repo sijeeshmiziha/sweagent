@@ -8,16 +8,17 @@ export type {
   BasicProjectInfo,
   ExtractedModule,
   CrudApi,
+  Module,
   RequirementGathererAgentConfig,
+  RequirementChatConfig,
+  ChatTurnResult,
+  FinalRequirement,
+  RequirementContext,
+  ProjectBrief,
+  Stage,
 } from './types';
 export * from './prompts';
-export {
-  createAnalyzeProjectInfoTool,
-  createExtractActorsTool,
-  createGenerateFlowsTool,
-  createGenerateStoriesTool,
-  createExtractModulesTool,
-  createRequirementGathererTools,
-} from './tools';
-export { infoProcessorSubagent, createRequirementValidatorSubagent } from './subagents';
 export { runRequirementGathererAgent } from './agent';
+export { processRequirementChat } from './chat';
+export { RequirementContextBuilder, createRequirementContextBuilder } from './context-builder';
+export { createInitialContext, mergeStageResult, addChatEntry, advanceStage } from './context';
