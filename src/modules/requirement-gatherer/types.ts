@@ -17,7 +17,7 @@ export interface ProjectBrief {
   goal: string;
   features: string[];
   domain: string;
-  scale: 'small' | 'medium' | 'large';
+  database: 'mongodb' | 'postgresql';
   backendRuntime: 'nodejs';
   apiStyle: 'rest' | 'graphql';
 }

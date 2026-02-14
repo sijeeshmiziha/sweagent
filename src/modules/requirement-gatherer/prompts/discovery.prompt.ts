@@ -2,17 +2,22 @@
  * Discovery stage prompt - understand project and optionally ask questions
  */
 
-export const DISCOVERY_SYSTEM_FRAGMENT = `You are in the discovery stage. Your job is to parse the user's message (and any prior context) into a structured project brief, and only ask clarifying questions if something is genuinely unclear.
+export const DISCOVERY_SYSTEM_FRAGMENT = `You are in the discovery stage. Parse the user's message (and prior context) into a structured project brief. Ask clarifying questions only when something genuinely blocks design decisions.
 
 Determine from the user's words:
 - Project name and goal
 - Key features (array of strings)
 - Domain (e.g. e-commerce, healthcare, saas)
-- Scale: small (single team, simple), medium (multiple teams, moderate complexity), large (enterprise, high complexity)
-- API style: "rest" | "graphql" - infer from phrases like "REST API", "GraphQL",  or default to "rest" if unclear
-- Backend is always "nodejs" for now
+- API style: "rest" | "graphql" — infer from context or ask with predefined options
+- Database: "mongodb" | "postgresql" — ask which they are comfortable with, with predefined options
+- Backend is always "nodejs"
 
-If the user has already answered a question, incorporate that. If everything needed for a project brief is clear, set needsClarification to false and empty questions. Only ask 1-3 questions when critical (e.g. "Do you want REST or GraphQL for your API?").`;
+Question rules:
+- Tech stack (API style, database): Always provide "suggestions" with predefined options (e.g. ["REST", "GraphQL"], ["MongoDB", "PostgreSQL"]). Frame as "which are you comfortable with?"
+- All other questions: Use "suggestions": []. Ask open-ended, specific to what the user described (e.g. file uploads, real-time features, auth provider, core user action).
+- Never ask: scale, "how many users?", "what's the complexity?", or generic intake-form questions.
+- Before asking, check conversation history — never repeat something already answered.
+- If the user's message is clear enough (e.g. "Instagram clone with photo sharing, messaging, stories"), infer the obvious and ask only about genuine gaps. If you have enough for the brief, set needsClarification to false and empty questions.`;
 
 export const DISCOVERY_USER_PROMPT = `## Current user message:
 {userMessage}
@@ -20,7 +25,7 @@ export const DISCOVERY_USER_PROMPT = `## Current user message:
 ## Prior conversation (if any):
 {history}
 
-Analyze the message and prior context. If you have enough to fill the project brief, return it and set needsClarification to false. Otherwise ask 1-3 short questions.
+Analyze the message and prior context. If you have enough to fill the project brief, return it and set needsClarification to false. Otherwise ask 1-3 short, problem-focused questions.
 
 Return ONLY valid JSON (no markdown, no explanation) in this shape:
 {
@@ -30,7 +35,7 @@ Return ONLY valid JSON (no markdown, no explanation) in this shape:
       "id": "q1",
       "question": "Question text",
       "context": "Why this helps",
-      "suggestions": ["Option A", "Option B"],
+      "suggestions": [],
       "multiSelect": false,
       "required": true
     }
@@ -41,12 +46,13 @@ Return ONLY valid JSON (no markdown, no explanation) in this shape:
     "goal": "string",
     "features": ["string"],
     "domain": "string",
-    "scale": "small" | "medium" | "large",
+    "database": "mongodb" | "postgresql",
     "backendRuntime": "nodejs",
     "apiStyle": "rest" | "graphql"
   }
 }
 
+For tech choices (API style, database), populate "suggestions" with the predefined options. For all other questions, use "suggestions": [].
 If needsClarification is true, projectBrief can have empty/default values. If false, projectBrief must be complete.`;
 
 export function buildDiscoveryPrompt(userMessage: string, history: string): string {

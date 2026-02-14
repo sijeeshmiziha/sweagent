@@ -15,7 +15,7 @@ export const projectBriefSchema = z.object({
   goal: z.string(),
   features: z.array(z.string()),
   domain: z.string(),
-  scale: z.enum(['small', 'medium', 'large']),
+  database: z.enum(['mongodb', 'postgresql']),
   backendRuntime: z.literal('nodejs'),
   apiStyle: z.enum(['rest', 'graphql']),
 });

@@ -2,9 +2,9 @@
  * Design stage prompts - direct LLM invocation for database and API design
  */
 
-const DESIGN_DB_PROMPT = `You are a database architect. Choose ONLY between MongoDB and PostgreSQL based on the project. Output a single JSON object.
+const DESIGN_DB_PROMPT = `You are a database architect. The project brief includes a "database" field (mongodb or postgresql)—use that database. Do not choose a different one. Output a single JSON object.
 
-## Project brief:
+## Project brief (includes database: "mongodb" | "postgresql"):
 {projectBrief}
 
 ## Modules (entities and CRUD):
@@ -13,12 +13,12 @@ const DESIGN_DB_PROMPT = `You are a database architect. Choose ONLY between Mong
 ## User stories (data involved):
 {stories}
 
-Consider: schema flexibility vs relations, scale, team familiarity. For MongoDB use types like ObjectId, string, number, date, array; for PostgreSQL use varchar(n), text, integer, uuid, timestamp, jsonb, and proper foreign key relations.
+Design the schema for the chosen database. For MongoDB use types like ObjectId, string, number, date, array; for PostgreSQL use varchar(n), text, integer, uuid, timestamp, jsonb, and proper foreign key relations.
 
-Return ONLY valid JSON (no markdown) in this exact shape:
+Return ONLY valid JSON (no markdown) in this exact shape. Set "type" to the database from the project brief.
 {
   "type": "mongodb" | "postgresql",
-  "reasoning": "2-4 sentences why this DB",
+  "reasoning": "2-4 sentences on how the schema fits the project",
   "entities": [
     {
       "name": "EntityName",
