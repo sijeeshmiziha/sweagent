@@ -23,6 +23,19 @@ export function extractJson(text: string): string {
   return trimmed;
 }
 
+export function safeParseJson(
+  text: string
+): { success: true; data: unknown } | { success: false; error: string } {
+  try {
+    return { success: true, data: JSON.parse(text) };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : String(e),
+    };
+  }
+}
+
 /** Build a short text summary of context for inclusion in prompts */
 export function buildContextSummary(ctx: RequirementContext): string {
   const parts: string[] = [];

@@ -18,9 +18,16 @@ import {
   defineSubagent,
   createSubagentToolSet,
   runAgent,
+  createLogger,
 } from 'sweagent';
 import type { AgentStep } from 'sweagent';
 import { z } from 'zod';
+
+const logger = createLogger({
+  name: 'subagents',
+  level: 'info',
+  pretty: true,
+});
 
 // --- Read-only tool for the researcher subagent ---
 const searchTool = defineTool({
@@ -28,7 +35,7 @@ const searchTool = defineTool({
   description: 'Search for information on the web',
   input: z.object({ query: z.string() }),
   handler: async ({ query }) => {
-    console.log(`    [Researcher/search] "${query}"`);
+    logger.debug('Researcher search', { query });
     return {
       results: [
         `Summary: Key points about ${query} from source A.`,
@@ -63,13 +70,13 @@ const PARENT_SYSTEM_PROMPT = `You are a coordinator. When the user asks a questi
 3. Reply to the user with the final summary.`;
 
 async function main() {
-  console.log('=== Subagents Example (researcher + summarizer) ===\n');
-
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
   const agentInput =
     process.env.AGENT_INPUT ?? 'Research "TypeScript 5 features" and give me a short summary.';
   const maxIterations = Number(process.env.MAX_ITERATIONS ?? '10') || 10;
+
+  logger.info('Subagents example started', { prompt: agentInput, provider, model: modelName });
 
   const parentModel = createModel({
     provider,
@@ -81,34 +88,27 @@ async function main() {
   });
   const parentTools = createToolSet(subagentTools);
 
-  console.log('Prompt:', agentInput);
-  console.log('Model:', provider, modelName);
-  console.log('');
-
   const result = await runAgent({
     model: parentModel,
     tools: parentTools,
     systemPrompt: PARENT_SYSTEM_PROMPT,
     input: agentInput,
     maxIterations,
+    logger,
     onStep: (step: AgentStep) => {
-      console.log(`--- Step ${step.iteration + 1} ---`);
+      logger.debug('Step', { iteration: step.iteration + 1, hasContent: !!step.content });
       if (step.content) {
-        console.log('Agent:', step.content);
+        logger.debug('Agent content', { preview: step.content.slice(0, 100) });
       }
       if (step.toolCalls?.length) {
         for (const tc of step.toolCalls) {
-          const inputStr =
-            typeof tc.input === 'object' && tc.input && 'prompt' in tc.input
-              ? (tc.input as { prompt: string }).prompt.slice(0, 80)
-              : JSON.stringify(tc.input).slice(0, 80);
-          console.log(`  Tool: ${tc.toolName}(${inputStr}...)`);
+          logger.debug('Tool call', { toolName: tc.toolName });
         }
       }
-      console.log('');
     },
   });
 
+  logger.info('Done', { steps: result.steps.length, hasOutput: !!result.output });
   console.log('=== Done ===\n');
   console.log('Final output:\n');
   console.log(result.output);

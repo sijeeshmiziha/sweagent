@@ -10,7 +10,7 @@ export class RequirementsState implements RequirementStageState {
   readonly stageName: Stage = 'requirements';
 
   async process(context: RequirementContext, input: StageInput): Promise<StageResult> {
-    return runRequirementsStage(input.userMessage, context, input.model);
+    return runRequirementsStage(input.userMessage, context, input.model, input.logger);
   }
 
   canAdvance(result: StageResult): boolean {

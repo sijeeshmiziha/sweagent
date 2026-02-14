@@ -29,7 +29,7 @@ Respond with the final frontend config (as JSON) or a clear summary and the conf
  * Use generate_frontend tool for config generation; the tool may throw on parse failure (caller can retry with new input).
  */
 export async function runReactBuilderAgent(config: ReactBuilderAgentConfig): Promise<AgentResult> {
-  const { input, model: modelConfig, maxIterations = 15, onStep } = config;
+  const { input, model: modelConfig, maxIterations = 15, onStep, logger } = config;
 
   const model = createModel(modelConfig ?? { provider: 'openai', model: 'gpt-4o-mini' });
   const reactTools = createReactBuilderTools(model);
@@ -46,5 +46,6 @@ export async function runReactBuilderAgent(config: ReactBuilderAgentConfig): Pro
     input,
     maxIterations,
     onStep,
+    logger,
   });
 }

@@ -2,10 +2,12 @@
  * Design stage - direct LLM calls for database and API design (prompt chaining)
  */
 
+import { z } from 'zod';
+import type { Logger } from '../../../lib/types/common';
 import type { Model } from '../../../lib/types/model';
 import type { RequirementContext, StageResult } from '../types';
 import { databaseDesignSchema, apiDesignSchema } from '../schemas';
-import { extractJson, summarizeModules, summarizeStories } from './base';
+import { extractJson, safeParseJson, summarizeModules, summarizeStories } from './base';
 import {
   DESIGN_DATABASE_SYSTEM_PROMPT,
   DESIGN_APIS_SYSTEM_PROMPT,
@@ -16,7 +18,8 @@ import {
 export async function runDesignStage(
   _userMessage: string,
   context: RequirementContext,
-  model: Model
+  model: Model,
+  logger?: Logger
 ): Promise<StageResult> {
   const brief = context.projectBrief;
   if (!brief) {
@@ -45,8 +48,19 @@ export async function runDesignStage(
     maxOutputTokens: 8192,
   });
   const dbJsonStr = extractJson(dbResponse.text);
-  const databaseResult = databaseDesignSchema.safeParse(JSON.parse(dbJsonStr) as unknown);
+  const dbParsed = safeParseJson(dbJsonStr);
+  if (!dbParsed.success) {
+    logger?.warn('Database design response was not valid JSON', { error: dbParsed.error });
+    return {
+      message: 'Failed to parse database design response. Please try again.',
+      advance: false,
+      data: {},
+    };
+  }
+  const databaseResult = databaseDesignSchema.safeParse(dbParsed.data);
   if (!databaseResult.success) {
+    const err = databaseResult.error;
+    logger?.warn('Database design schema validation failed', { error: z.treeifyError(err) });
     return {
       message: 'Failed to produce database design. Please try again.',
       advance: false,
@@ -71,8 +85,19 @@ export async function runDesignStage(
     maxOutputTokens: 16384,
   });
   const apiJsonStr = extractJson(apiResponse.text);
-  const apiDesignResult = apiDesignSchema.safeParse(JSON.parse(apiJsonStr) as unknown);
+  const apiParsed = safeParseJson(apiJsonStr);
+  if (!apiParsed.success) {
+    logger?.warn('API design response was not valid JSON', { error: apiParsed.error });
+    return {
+      message: 'Failed to parse API design response. Please try again.',
+      advance: false,
+      data: { database },
+    };
+  }
+  const apiDesignResult = apiDesignSchema.safeParse(apiParsed.data);
   if (!apiDesignResult.success) {
+    const err = apiDesignResult.error;
+    logger?.warn('API design schema validation failed', { error: z.treeifyError(err) });
     return {
       message: 'Failed to produce API design. Please try again.',
       advance: false,

@@ -10,41 +10,84 @@
  *
  * Run:
  *   npx tsx 01-requirement-gatherer-agent.ts
+ *   npm run example:requirement-gatherer
  *
- * Or one-shot (no prompts):
- *   REQUIREMENT="Task manager app with REST API" npx tsx 01-requirement-gatherer-agent.ts
+ * One-shot (env): REQUIREMENT="Task manager app with REST API" npx tsx 01-requirement-gatherer-agent.ts
+ * Save output:    SAVE_REQUIREMENT=1 npx tsx 01-requirement-gatherer-agent.ts
  */
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 import { input } from '@inquirer/prompts';
-import { processRequirementChat } from 'sweagent';
+import { processRequirementChat, createLogger } from 'sweagent';
 import type { RequirementContext } from 'sweagent';
 
-async function main() {
+const logger = createLogger({
+  name: 'requirement-gatherer',
+  level: 'info',
+  pretty: true,
+});
+const chatLogger = logger.child({ component: 'Chat' });
+
+const STAGES = 'discovery → requirements → design → complete';
+
+function printInstructions(): void {
   console.log('=== Requirement Gatherer (Chat) ===\n');
-  console.log('Describe your project. Say "continue" to advance, or answer any questions.\n');
+  console.log('Stages:', STAGES);
+  console.log('Describe your project; say "continue" to advance when there are no questions.');
+  console.log('Answer any questions shown; then say "continue" to move on.');
+  console.log('Type `exit` or `quit` to stop.\n');
+}
+
+async function saveRequirementToFile(finalRequirement: unknown): Promise<void> {
+  const path = join(process.cwd(), 'requirement-output.json');
+  await writeFile(path, JSON.stringify(finalRequirement, null, 2), 'utf-8');
+  console.log('\nSaved to', path);
+}
+
+async function main() {
+  printInstructions();
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
   let context: RequirementContext | null = null;
 
   const processTurn = async (userMessage: string): Promise<boolean> => {
-    const result = await processRequirementChat(userMessage, context, {
-      model: { provider, model: modelName },
-    });
-    context = result.context;
-    console.log('\nAssistant:', result.message);
-    if (result.questions?.length) {
-      console.log('\nQuestions:');
-      for (const q of result.questions) {
-        console.log(`  - ${q.question}`);
-        if (q.suggestions?.length) console.log(`    Suggestions: ${q.suggestions.join(', ')}`);
+    try {
+      chatLogger.info('Processing chat turn');
+      const result = await processRequirementChat(userMessage, context, {
+        model: { provider, model: modelName },
+        logger: chatLogger,
+      });
+      context = result.context;
+      chatLogger.info('Stage complete', { stage: result.context.stage });
+      console.log('\n[Stage:', result.context.stage + ']');
+      console.log('Assistant:', result.message);
+      if (result.questions?.length) {
+        console.log('\nQuestions:');
+        for (const q of result.questions) {
+          console.log(`  - ${q.question}`);
+          if (q.suggestions?.length) console.log(`    Suggestions: ${q.suggestions.join(', ')}`);
+        }
       }
+      if (result.finalRequirement) {
+        console.log('\n--- Final requirement document ---');
+        console.log(JSON.stringify(result.finalRequirement, null, 2));
+        if (process.env.SAVE_REQUIREMENT === '1') {
+          await saveRequirementToFile(result.finalRequirement);
+        }
+        return true;
+      }
+      return false;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      chatLogger.error('Chat turn failed', err instanceof Error ? err : { message: msg });
+      if (/api key|invalid api key|authorization/i.test(msg)) {
+        console.error('Set OPENAI_API_KEY (or ANTHROPIC_API_KEY / GEMINI_API_KEY) and try again.');
+      } else {
+        console.error('Check provider/model (PROVIDER, MODEL) and try again.');
+      }
+      throw err;
     }
-    if (result.finalRequirement) {
-      console.log('\n--- Final requirement document ---');
-      console.log(JSON.stringify(result.finalRequirement, null, 2));
-      return true;
-    }
-    return false;
   };
 
   const envInput = process.env.REQUIREMENT ?? process.env.AGENT_INPUT;

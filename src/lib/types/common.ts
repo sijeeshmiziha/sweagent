@@ -25,4 +25,6 @@ export interface Logger {
   info(message: string, data?: Record<string, unknown>): void;
   warn(message: string, data?: Record<string, unknown>): void;
   error(message: string, error?: Error | Record<string, unknown>): void;
+  /** Create a child logger with additional context bindings */
+  child(bindings: Record<string, unknown>): Logger;
 }

@@ -3,6 +3,7 @@
  */
 
 import type { AgentStep } from '../../lib/types/agent';
+import type { Logger } from '../../lib/types/common';
 import type { ModelConfig } from '../../lib/types/model';
 
 export interface AppInfo {
@@ -23,4 +24,6 @@ export interface ReactBuilderAgentConfig {
   maxIterations?: number;
   /** Callback for each step */
   onStep?: (step: AgentStep) => void;
+  /** Optional logger for execution logs */
+  logger?: Logger;
 }

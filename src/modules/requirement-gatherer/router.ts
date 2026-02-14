@@ -35,7 +35,7 @@ export async function runStage(
 }> {
   logger?.debug('Stage processor invoked', { stage });
   const state = getStateForStage(stage);
-  const result = await state.process(context, { userMessage, model });
+  const result = await state.process(context, { userMessage, model, logger });
   const merged = mergeStageResult(context, result);
   const finalReq = 'finalRequirement' in result.data ? result.data.finalRequirement : undefined;
   logger?.debug('Stage result', {

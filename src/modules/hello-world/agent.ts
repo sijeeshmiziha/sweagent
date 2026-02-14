@@ -3,6 +3,7 @@
  */
 
 import type { AgentResult, AgentStep } from '../../lib/types/agent';
+import type { Logger } from '../../lib/types/common';
 import type { ModelConfig } from '../../lib/types/model';
 import { runAgent } from '../../lib/agents';
 import { createModel } from '../../lib/models/create-model';
@@ -20,6 +21,8 @@ export interface HelloWorldAgentConfig {
   maxIterations?: number;
   /** Callback for each step */
   onStep?: (step: AgentStep) => void;
+  /** Optional logger for execution logs */
+  logger?: Logger;
 }
 
 const DEFAULT_SYSTEM_PROMPT =
@@ -32,6 +35,7 @@ export async function runHelloWorldAgent(config: HelloWorldAgentConfig): Promise
     systemPrompt = DEFAULT_SYSTEM_PROMPT,
     maxIterations = 3,
     onStep,
+    logger,
   } = config;
 
   const model = createModel(modelConfig ?? { provider: 'openai', model: 'gpt-4o-mini' });
@@ -43,5 +47,6 @@ export async function runHelloWorldAgent(config: HelloWorldAgentConfig): Promise
     input,
     maxIterations,
     onStep,
+    logger,
   });
 }

@@ -10,11 +10,17 @@
  * Run:
  *   npx tsx 01-hello-world.ts
  */
-import { runHelloWorldAgent } from 'sweagent';
+import { runHelloWorldAgent, createLogger } from 'sweagent';
 import type { AgentStep } from 'sweagent';
 
+const logger = createLogger({
+  name: 'hello-world',
+  level: 'info',
+  pretty: true,
+});
+
 async function main() {
-  console.log('=== Hello World Agent ===\n');
+  logger.info('Hello World Agent started');
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
@@ -29,37 +35,33 @@ async function main() {
     model: { provider, model: modelName },
     systemPrompt,
     maxIterations,
+    logger,
     onStep: (step: AgentStep) => {
       const stepNum = step.iteration + 1;
 
       if (step.toolCalls?.length) {
         for (const tc of step.toolCalls) {
-          const args = tc.input as Record<string, unknown>;
-          console.log(`  [Step ${stepNum}] Tool: ${tc.toolName}(${JSON.stringify(args)})`);
+          logger.debug('Step', { stepNum, tool: tc.toolName, input: tc.input });
         }
       } else {
         const preview = step.content?.slice(0, 80) ?? '';
-        console.log(
-          `  [Step ${stepNum}] Response: ${preview}${step.content && step.content.length > 80 ? '...' : ''}`
-        );
+        logger.debug('Step response', { stepNum, preview });
       }
 
       if (step.toolResults?.length) {
         for (const tr of step.toolResults) {
           const status = tr.isError ? 'ERROR' : 'OK';
-          console.log(`           -> ${tr.toolName} [${status}]: ${JSON.stringify(tr.output)}`);
+          logger.debug('Tool result', { toolName: tr.toolName, status });
         }
       }
 
       if (step.usage) {
-        console.log(
-          `           tokens: input=${step.usage.inputTokens ?? 0} output=${step.usage.outputTokens ?? 0}`
-        );
+        logger.debug('Step usage', step.usage);
       }
-      console.log();
     },
   });
 
+  logger.info('Agent completed', { steps: result.steps.length });
   console.log('--- Final output ---');
   console.log(result.output);
   console.log(`\nTotal steps: ${result.steps.length}`);

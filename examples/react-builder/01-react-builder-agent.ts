@@ -11,15 +11,21 @@
  * Run:
  *   npx tsx 01-react-builder-agent.ts
  */
-import { runReactBuilderAgent } from 'sweagent';
+import { runReactBuilderAgent, createLogger } from 'sweagent';
 import type { AgentStep } from 'sweagent';
+
+const logger = createLogger({
+  name: 'react-builder',
+  level: 'info',
+  pretty: true,
+});
 
 const DEFAULT_INPUT = `type Query { user(id: ID!): User users: [User!]! }
 type Mutation { createUser(name: String!, email: String!): User }
 type User { id: ID! name: String! email: String! }`;
 
 async function main() {
-  console.log('=== React Builder Agent ===\n');
+  logger.info('React Builder Agent started');
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
@@ -30,6 +36,7 @@ async function main() {
     input: agentInput,
     model: { provider, model: modelName },
     maxIterations,
+    logger,
     onStep: (step: AgentStep) => {
       const stepNum = step.iteration + 1;
 
@@ -42,35 +49,27 @@ async function main() {
               : typeof args.prompt === 'string'
                 ? args.prompt.slice(0, 60) + '...'
                 : JSON.stringify(args).slice(0, 80);
-          console.log(`  [Step ${stepNum}] Tool: ${tc.toolName}(${preview})`);
+          logger.debug('Step', { stepNum, tool: tc.toolName, preview });
         }
       } else if (step.content) {
         const preview = step.content.slice(0, 100) ?? '';
-        console.log(
-          `  [Step ${stepNum}] Response: ${preview}${step.content.length > 100 ? '...' : ''}`
-        );
+        logger.debug('Step response', { stepNum, preview });
       }
 
       if (step.toolResults?.length) {
         for (const tr of step.toolResults) {
           const status = tr.isError ? 'ERROR' : 'OK';
-          const outPreview =
-            typeof tr.output === 'string'
-              ? tr.output.slice(0, 80) + (tr.output.length > 80 ? '...' : '')
-              : JSON.stringify(tr.output).slice(0, 80);
-          console.log(`           -> ${tr.toolName} [${status}]: ${outPreview}`);
+          logger.debug('Tool result', { toolName: tr.toolName, status });
         }
       }
 
       if (step.usage) {
-        console.log(
-          `           tokens: input=${step.usage.inputTokens ?? 0} output=${step.usage.outputTokens ?? 0}`
-        );
+        logger.debug('Step usage', step.usage);
       }
-      console.log();
     },
   });
 
+  logger.info('Agent completed', { steps: result.steps.length, hasOutput: !!result.output });
   console.log('--- Final output ---');
   console.log(result.output);
   console.log(`\nTotal steps: ${result.steps.length}`);

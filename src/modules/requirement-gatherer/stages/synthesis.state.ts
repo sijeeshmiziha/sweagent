@@ -10,7 +10,7 @@ export class SynthesisState implements RequirementStageState {
   readonly stageName: Stage = 'complete';
 
   async process(context: RequirementContext, input: StageInput): Promise<StageResult> {
-    return runSynthesisStage(input.userMessage, context, input.model);
+    return runSynthesisStage(input.userMessage, context, input.model, input.logger);
   }
 
   canAdvance(result: StageResult): boolean {

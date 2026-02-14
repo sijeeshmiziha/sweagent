@@ -39,7 +39,7 @@ export async function processRequirementChat(
   };
 
   let stage = ctx.stage;
-  logger?.debug('Running stage', { stage });
+  logger?.info('Running stage', { stage });
   let runResult = await runOne(stage);
   ctx = { ...ctx, pendingQuestions: questions };
 
@@ -51,7 +51,7 @@ export async function processRequirementChat(
     stage = nextStage;
     ctx = advanceStage(ctx);
     ctx = { ...ctx, stage };
-    logger?.debug('Running stage', { stage });
+    logger?.info('Running stage', { stage });
     runResult = await runOne(stage);
     ctx = { ...ctx, pendingQuestions: questions };
   }

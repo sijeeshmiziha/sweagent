@@ -10,7 +10,7 @@ export class DiscoveryState implements RequirementStageState {
   readonly stageName: Stage = 'discovery';
 
   async process(context: RequirementContext, input: StageInput): Promise<StageResult> {
-    return runDiscoveryStage(input.userMessage, context, input.model);
+    return runDiscoveryStage(input.userMessage, context, input.model, input.logger);
   }
 
   canAdvance(result: StageResult): boolean {

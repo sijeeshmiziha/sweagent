@@ -10,15 +10,21 @@
  * Run:
  *   npx tsx 04-agent-with-multiple-tools.ts
  */
-import { createModel, createToolSet, defineTool, runAgent } from 'sweagent';
+import { createModel, createToolSet, defineTool, runAgent, createLogger } from 'sweagent';
 import { z } from 'zod';
+
+const logger = createLogger({
+  name: 'multi-tool',
+  level: 'info',
+  pretty: true,
+});
 
 const searchTool = defineTool({
   name: 'web_search',
   description: 'Search for information on the web',
   input: z.object({ query: z.string() }),
   handler: async ({ query }) => {
-    console.log(`  [Search] Searching for: "${query}"`);
+    logger.debug('Search', { query });
     return {
       results: [
         `Result 1: Best practices for ${query}`,
@@ -37,7 +43,7 @@ const writeFileTool = defineTool({
     content: z.string(),
   }),
   handler: async ({ filename, content }) => {
-    console.log(`  [WriteFile] Would write ${content.length} chars to ${filename}`);
+    logger.debug('WriteFile', { filename, contentLength: content.length });
     return { success: true, bytes: content.length, filename };
   },
 });
@@ -48,13 +54,13 @@ const getCurrentTimeTool = defineTool({
   input: z.object({}),
   handler: async () => {
     const now = new Date().toISOString();
-    console.log(`  [Time] Current time: ${now}`);
+    logger.debug('Time', { time: now });
     return { time: now };
   },
 });
 
 async function main() {
-  console.log('Testing multi-tool agent...\n');
+  logger.info('Testing multi-tool agent');
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
@@ -78,17 +84,19 @@ async function main() {
       'You are a research assistant. Use the web_search tool at most once or twice to find information. After you have the search results, respond with your final summary in plain text and do not call any more tools.',
     input: agentInput,
     maxIterations,
+    logger,
     onStep: step => {
       if (step.toolCalls?.length) {
         step.toolCalls.forEach(tc => {
-          console.log(`Step ${step.iteration + 1}: ${tc.toolName}()`);
+          logger.debug('Step', { iteration: step.iteration + 1, tool: tc.toolName });
         });
       } else {
-        console.log(`Step ${step.iteration + 1}: Generating response...`);
+        logger.debug('Step', { iteration: step.iteration + 1, phase: 'response' });
       }
     },
   });
 
+  logger.info('Agent completed', { steps: result.steps.length });
   console.log('\n✓ Agent completed');
   console.log('\n--- ANSWER ---\n');
   console.log(result.output);

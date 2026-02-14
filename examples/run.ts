@@ -111,7 +111,11 @@ async function promptForEnvVars(
   const collected: Record<string, string> = {};
   const isRequirementGatherer = entry?.group === 'Requirement Gatherer';
   for (const key of envVars) {
-    const label = ENV_VAR_LABELS[key] ?? key;
+    let label = ENV_VAR_LABELS[key] ?? key;
+    if (isRequirementGatherer && key === 'REQUIREMENT') {
+      label =
+        'Requirement (leave empty to run interactive chat; non-empty = one-shot with this string)';
+    }
     let defaultValue = ENV_VAR_DEFAULTS[key] ?? '';
     if (isRequirementGatherer && key === 'REQUIREMENT') {
       defaultValue = '';

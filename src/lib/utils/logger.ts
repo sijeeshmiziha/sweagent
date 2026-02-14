@@ -1,80 +1,82 @@
 /**
- * Simple logger with optional prefix and progress support
+ * Structured logger using Pino (JSON by default, optional pretty/file)
  */
 
+import pino from 'pino';
 import type { Logger } from '../types/common';
 
-/**
- * Log levels
- */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-/**
- * Logger configuration
- */
 export interface LoggerConfig {
-  /** Prefix for all log messages */
-  prefix?: string;
-  /** Minimum log level to output */
+  /** Logger name (appears in logs) */
+  name?: string;
+  /** Minimum log level */
   level?: LogLevel;
-  /** Whether to output timestamps */
-  timestamps?: boolean;
+  /** Use pino-pretty for readable output */
+  pretty?: boolean;
+  /** File path for JSON logs */
+  file?: string;
+  /** Optional stream for testing (bypasses transport) */
+  destination?: pino.DestinationStream;
 }
 
-const LOG_LEVELS: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
-
-/**
- * Create a logger with the given configuration
- */
 export function createLogger(config: LoggerConfig = {}): Logger {
-  const { prefix = '', level = 'info', timestamps = false } = config;
-  const minLevel = LOG_LEVELS[level];
+  const { name, level = 'info', pretty = false, file, destination } = config;
 
-  function formatMessage(logLevel: LogLevel, message: string): string {
-    const parts: string[] = [];
-    if (timestamps) {
-      parts.push(`[${new Date().toISOString()}]`);
+  let pinoLogger: pino.Logger;
+
+  if (destination) {
+    pinoLogger = pino({ name, level }, destination);
+  } else {
+    const targets: pino.TransportTargetOptions[] = [];
+
+    if (pretty) {
+      targets.push({
+        target: 'pino-pretty',
+        options: { colorize: true },
+        level,
+      });
+    } else {
+      targets.push({
+        target: 'pino/file',
+        options: { destination: 1 },
+        level,
+      });
     }
-    parts.push(`[${logLevel.toUpperCase()}]`);
-    if (prefix) {
-      parts.push(`[${prefix}]`);
+
+    if (file) {
+      targets.push({
+        target: 'pino/file',
+        options: { destination: file, mkdir: true },
+        level,
+      });
     }
-    parts.push(message);
-    return parts.join(' ');
+
+    const transport = pino.transport({ targets }) as pino.DestinationStream;
+    pinoLogger = pino({ name, level }, transport);
   }
 
-  function shouldLog(logLevel: LogLevel): boolean {
-    return LOG_LEVELS[logLevel] >= minLevel;
-  }
+  return wrapPino(pinoLogger);
+}
 
+function wrapPino(p: pino.Logger): Logger {
   return {
-    debug(message: string, data?: Record<string, unknown>): void {
-      if (shouldLog('debug')) {
-        console.debug(formatMessage('debug', message), data ?? '');
+    debug: (msg, data) => {
+      p.debug(data ?? {}, msg);
+    },
+    info: (msg, data) => {
+      p.info(data ?? {}, msg);
+    },
+    warn: (msg, data) => {
+      p.warn(data ?? {}, msg);
+    },
+    error: (msg, err) => {
+      if (err instanceof Error) {
+        p.error({ err }, msg);
+      } else {
+        p.error(err ?? {}, msg);
       }
     },
-
-    info(message: string, data?: Record<string, unknown>): void {
-      if (shouldLog('info')) {
-        console.info(formatMessage('info', message), data ?? '');
-      }
-    },
-
-    warn(message: string, data?: Record<string, unknown>): void {
-      if (shouldLog('warn')) {
-        console.warn(formatMessage('warn', message), data ?? '');
-      }
-    },
-
-    error(message: string, error?: Error | Record<string, unknown>): void {
-      if (shouldLog('error')) {
-        console.error(formatMessage('error', message), error ?? '');
-      }
-    },
+    child: bindings => wrapPino(p.child(bindings)),
   };
 }

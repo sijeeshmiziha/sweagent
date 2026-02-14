@@ -10,8 +10,14 @@
  * Run:
  *   npx tsx 03-tool-calling.ts
  */
-import { createModel, createToolSet, defineTool, runAgent } from 'sweagent';
+import { createModel, createToolSet, defineTool, runAgent, createLogger } from 'sweagent';
 import { z } from 'zod';
+
+const logger = createLogger({
+  name: 'tool-calling',
+  level: 'info',
+  pretty: true,
+});
 
 const calculatorTool = defineTool({
   name: 'calculator',
@@ -28,13 +34,13 @@ const calculatorTool = defineTool({
       multiply: a * b,
       divide: a / b,
     };
-    console.log(`  [Calculator] ${a} ${operation} ${b} = ${ops[operation]}`);
+    logger.debug('Calculator', { operation, a, b, result: ops[operation] });
     return { result: ops[operation] };
   },
 });
 
 async function main() {
-  console.log('Testing agent with tools...\n');
+  logger.info('Testing agent with tools');
 
   const provider = (process.env.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const modelName = process.env.MODEL ?? 'gpt-4o-mini';
@@ -51,11 +57,16 @@ async function main() {
     systemPrompt: 'You are a helpful math assistant. Use the calculator tool to solve problems.',
     input: agentInput,
     maxIterations,
+    logger,
     onStep: step => {
-      console.log(`Step ${step.iteration + 1}:`, step.toolCalls?.[0]?.toolName || 'thinking...');
+      logger.debug('Step', {
+        iteration: step.iteration + 1,
+        tool: step.toolCalls?.[0]?.toolName ?? 'thinking',
+      });
     },
   });
 
+  logger.info('Agent completed', { steps: result.steps.length });
   console.log('\nFinal answer:', result.output);
   console.log('Steps taken:', result.steps.length);
   console.log('Total tokens:', result.totalUsage);

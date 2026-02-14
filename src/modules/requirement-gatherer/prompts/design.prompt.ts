@@ -50,25 +50,16 @@ const DESIGN_APIS_PROMPT = `You are an API architect for Node.js backends. Desig
 {database}
 
 Produce an API design:
-- If apiStyle is "rest": include "rest" with baseUrl (e.g. "/api/v1") and endpoints array (method, path, description, auth, roles, requestBody, responseBody, queryParams). Express/Fastify style.
-- If apiStyle is "graphql": include "graphql" with types (type/input/enum), queries, mutations. Apollo/Yoga style.
+- If apiStyle is "rest": include "rest" with baseUrl (e.g. "/api/v1") and endpoints array. Each endpoint: id, moduleId, method (exactly one of GET, POST, PUT, PATCH, DELETE), path, description, auth (boolean), roles (array of strings), requestBody/responseBody/queryParams (object of string keys to string values, or {}).
+- If apiStyle is "graphql": include "graphql" with types (kind: "type" | "input" | "enum", fields array), queries, mutations. Each operation: name, moduleId, description, auth (boolean), roles (array), args (name, type, required boolean), returnType.
 
-Return ONLY valid JSON (no markdown) in this shape:
+Return ONLY valid JSON (no markdown, no code fences). Required shape:
 {
-  "style": "rest" | "graphql",
-  "rest": {
-    "baseUrl": "/api/v1",
-    "endpoints": [
-      { "id": "ep-1", "moduleId": "module-1", "method": "GET", "path": "/users", "description": "...", "auth": true, "roles": ["admin"], "requestBody": {}, "responseBody": {}, "queryParams": {} }
-    ]
-  },
-  "graphql": {
-    "types": [ { "name": "User", "kind": "type", "fields": [ { "name": "id", "type": "ID!", "description": "..." } ] } ],
-    "queries": [ { "name": "user", "moduleId": "module-1", "description": "...", "auth": false, "roles": [], "args": [ { "name": "id", "type": "ID!", "required": true } ], "returnType": "User" } ],
-    "mutations": [ { "name": "createUser", "moduleId": "module-1", "description": "...", "auth": true, "roles": [], "args": [], "returnType": "User" } ]
-  }
+  "style": "rest" or "graphql",
+  "rest": { "baseUrl": "/api/v1", "endpoints": [ { "id": "ep-1", "moduleId": "module-1", "method": "GET", "path": "/users", "description": "...", "auth": true, "roles": [], "requestBody": {}, "responseBody": {}, "queryParams": {} } ] },
+  "graphql": { "types": [], "queries": [], "mutations": [] }
 }
-Omit "rest" or "graphql" if not applicable per apiStyle.`;
+- Use lowercase "rest" or "graphql" for style. Omit the branch not used (omit "graphql" when style is "rest", omit "rest" when style is "graphql").`;
 
 export const DESIGN_DATABASE_SYSTEM_PROMPT =
   'You output only valid JSON. No markdown, no explanation.';
