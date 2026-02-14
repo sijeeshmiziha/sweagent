@@ -33,6 +33,11 @@ export async function runDesignStage(
     };
   }
 
+  logger?.info('Design stage: database and API design', {
+    modules: context.modules.length,
+    stories: context.stories.length,
+  });
+
   const projectBriefStr = JSON.stringify(brief);
   const modulesSummary = summarizeModules(context.modules);
   const storiesSummary = summarizeStories(context.stories);

@@ -5,7 +5,7 @@
 import { Writable } from 'node:stream';
 import { describe, it, expect } from 'vitest';
 import type pino from 'pino';
-import { createLogger } from '../../src/lib/utils/logger';
+import { createLogger, loggerConfigFromEnv } from '../../src/lib/utils/logger';
 
 function captureStream(): { stream: pino.DestinationStream; lines: string[] } {
   const lines: string[] = [];
@@ -149,5 +149,35 @@ describe('createLogger', () => {
     expect(parsed.component).toBe('Agent');
     expect(parsed.stage).toBe('discovery');
     expect(parsed.msg).toBe('Processing');
+  });
+
+  it('should return no-op logger when enabled is false', () => {
+    const logger = createLogger({ enabled: false, level: 'debug' });
+    logger.info('should not appear');
+    logger.debug('nor this');
+    logger.warn('nor this');
+    logger.error('nor this');
+    const child = logger.child({ x: 1 });
+    child.info('nor this');
+    expect(logger).toBe(logger.child({ a: 1 }));
+  });
+});
+
+describe('loggerConfigFromEnv', () => {
+  it('should read SWE_LOG_ENABLED=0 as disabled', () => {
+    const prev = process.env.SWE_LOG_ENABLED;
+    process.env.SWE_LOG_ENABLED = '0';
+    const config = loggerConfigFromEnv();
+    expect(config.enabled).toBe(false);
+    process.env.SWE_LOG_ENABLED = prev;
+  });
+
+  it('should read SWE_LOG_LEVEL and merge with overrides', () => {
+    const prev = process.env.SWE_LOG_LEVEL;
+    process.env.SWE_LOG_LEVEL = 'warn';
+    const config = loggerConfigFromEnv({ name: 'test' });
+    expect(config.level).toBe('warn');
+    expect(config.name).toBe('test');
+    process.env.SWE_LOG_LEVEL = prev;
   });
 });

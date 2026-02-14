@@ -74,7 +74,7 @@ const EXAMPLES: ExampleEntry[] = [
     value: 'examples/requirement-gatherer/01-requirement-gatherer-agent.ts',
     name: '01 - Requirement Gatherer Agent',
     group: 'Requirement Gatherer',
-    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT', 'MAX_ITERATIONS'],
+    envVars: ['PROVIDER', 'MODEL'],
   },
 ];
 
@@ -86,7 +86,7 @@ const ENV_VAR_LABELS: Record<string, string> = {
   GRAPHQL_SCHEMA: 'GraphQL schema',
   SYSTEM_PROMPT: 'System prompt',
   MAX_ITERATIONS: 'Max agent iterations',
-  REQUIREMENT: 'Project info / natural language requirement (leave empty for interactive chat)',
+  REQUIREMENT: 'Project requirement (leave empty for interactive chat)',
 };
 
 const ENV_VAR_DEFAULTS: Record<string, string> = {
@@ -106,20 +106,12 @@ const ENV_VAR_DEFAULTS: Record<string, string> = {
 
 async function promptForEnvVars(
   envVars: string[],
-  entry?: ExampleEntry
+  _entry?: ExampleEntry
 ): Promise<Record<string, string>> {
   const collected: Record<string, string> = {};
-  const isRequirementGatherer = entry?.group === 'Requirement Gatherer';
   for (const key of envVars) {
-    let label = ENV_VAR_LABELS[key] ?? key;
-    if (isRequirementGatherer && key === 'REQUIREMENT') {
-      label =
-        'Requirement (leave empty to run interactive chat; non-empty = one-shot with this string)';
-    }
-    let defaultValue = ENV_VAR_DEFAULTS[key] ?? '';
-    if (isRequirementGatherer && key === 'REQUIREMENT') {
-      defaultValue = '';
-    }
+    const label = ENV_VAR_LABELS[key] ?? key;
+    const defaultValue = ENV_VAR_DEFAULTS[key] ?? '';
     const value = await input({
       message: label,
       default: defaultValue,

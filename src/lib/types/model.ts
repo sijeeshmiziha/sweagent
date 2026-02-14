@@ -61,6 +61,22 @@ export interface InvokeOptions {
 }
 
 /**
+ * Options for structured object invocation (no tools)
+ */
+export interface InvokeObjectOptions {
+  maxOutputTokens?: number;
+  temperature?: number;
+}
+
+/**
+ * Result of invokeObject (structured output)
+ */
+export interface InvokeObjectResult<T> {
+  data: T;
+  usage?: LanguageModelUsage;
+}
+
+/**
  * Options for vision generation
  */
 export interface VisionOptions extends InvokeOptions {
@@ -106,4 +122,14 @@ export interface Model {
     images: ImageInput[],
     options?: VisionOptions
   ): Promise<ModelResponse>;
+
+  /**
+   * Invoke the model and return a structured object matching the given schema (Zod).
+   * Uses AI SDK generateObject; when not implemented, callers may fall back to invoke + manual parse.
+   */
+  invokeObject?<T>(
+    messages: ModelMessage[],
+    schema: unknown,
+    options?: InvokeObjectOptions
+  ): Promise<InvokeObjectResult<T>>;
 }

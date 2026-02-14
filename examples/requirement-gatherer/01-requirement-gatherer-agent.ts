@@ -14,18 +14,16 @@
  *
  * One-shot (env): REQUIREMENT="Task manager app with REST API" npx tsx 01-requirement-gatherer-agent.ts
  * Save output:    SAVE_REQUIREMENT=1 npx tsx 01-requirement-gatherer-agent.ts
+ *
+ * Logging: configured via .env (SWE_LOG_LEVEL, SWE_LOG_ENABLED, SWE_LOG_PRETTY, etc.). Logs use stderr so the prompt and assistant output stay clear on stdout.
  */
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { input } from '@inquirer/prompts';
-import { processRequirementChat, createLogger } from 'sweagent';
+import { processRequirementChat, createLogger, loggerConfigFromEnv } from 'sweagent';
 import type { RequirementContext } from 'sweagent';
 
-const logger = createLogger({
-  name: 'requirement-gatherer',
-  level: 'info',
-  pretty: true,
-});
+const logger = createLogger(loggerConfigFromEnv({ name: 'requirement-gatherer', pretty: true }));
 const chatLogger = logger.child({ component: 'Chat' });
 
 const STAGES = 'discovery → requirements → design → complete';
@@ -53,13 +51,11 @@ async function main() {
 
   const processTurn = async (userMessage: string): Promise<boolean> => {
     try {
-      chatLogger.info('Processing chat turn');
       const result = await processRequirementChat(userMessage, context, {
         model: { provider, model: modelName },
         logger: chatLogger,
       });
       context = result.context;
-      chatLogger.info('Stage complete', { stage: result.context.stage });
       console.log('\n[Stage:', result.context.stage + ']');
       console.log('Assistant:', result.message);
       if (result.questions?.length) {

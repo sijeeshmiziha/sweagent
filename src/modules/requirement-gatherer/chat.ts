@@ -15,13 +15,14 @@ export async function processRequirementChat(
   config: RequirementChatConfig
 ): Promise<ChatTurnResult> {
   const { logger } = config;
-  logger?.info('Processing chat turn', { messageLength: userMessage.length });
 
   const modelConfig = config.model ?? { provider: 'openai', model: 'gpt-4o-mini' };
   const model = createModel(modelConfig);
 
   let ctx: RequirementContext = context ?? createInitialContext();
   ctx = addChatEntry(ctx, 'user', userMessage);
+
+  logger?.info('Chat turn', { stage: ctx.stage, messageLength: userMessage.length });
 
   let message = '';
   let questions: RequirementContext['pendingQuestions'] = [];
@@ -39,7 +40,7 @@ export async function processRequirementChat(
   };
 
   let stage = ctx.stage;
-  logger?.info('Running stage', { stage });
+  logger?.info('Stage', { stage });
   let runResult = await runOne(stage);
   ctx = { ...ctx, pendingQuestions: questions };
 
@@ -51,14 +52,14 @@ export async function processRequirementChat(
     stage = nextStage;
     ctx = advanceStage(ctx);
     ctx = { ...ctx, stage };
-    logger?.info('Running stage', { stage });
+    logger?.info('Stage', { stage });
     runResult = await runOne(stage);
     ctx = { ...ctx, pendingQuestions: questions };
   }
 
   ctx = addChatEntry(ctx, 'assistant', message);
 
-  logger?.debug('Chat turn complete', { stage, hasFinalRequirement: !!finalRequirement });
+  logger?.info('Chat turn done', { stage, hasFinalRequirement: !!finalRequirement });
   return {
     message,
     context: ctx,

@@ -2,12 +2,14 @@
  * Shared AI SDK adapter - pass-through to generateText (no conversions)
  */
 
-import { generateText } from 'ai';
+import { generateText, generateObject, zodSchema } from 'ai';
 import type { LanguageModelV3 } from '@ai-sdk/provider';
 import type {
   Model,
   ModelResponse,
   InvokeOptions,
+  InvokeObjectOptions,
+  InvokeObjectResult,
   VisionOptions,
   ModelProvider,
   ModelTool,
@@ -114,6 +116,33 @@ export function createAIModel(params: CreateAIModelParams): Model {
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         throw new ModelError(`Failed to generate vision response`, provider, err);
+      }
+    },
+
+    async invokeObject<T>(
+      messages: ModelMessage[],
+      schema: unknown,
+      options?: InvokeObjectOptions
+    ): Promise<InvokeObjectResult<T>> {
+      try {
+        const model = await getModel();
+        const schemaWrapped = zodSchema(schema as Parameters<typeof zodSchema>[0]);
+        // Structured output; prefer generateObject until migrate to generateText+output
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const result = await generateObject({
+          model,
+          messages,
+          schema: schemaWrapped,
+          temperature: options?.temperature,
+          maxOutputTokens: options?.maxOutputTokens,
+        });
+        return {
+          data: result.object as T,
+          usage: result.usage,
+        };
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        throw new ModelError(`Failed to invokeObject ${provider} model`, provider, err);
       }
     },
   };

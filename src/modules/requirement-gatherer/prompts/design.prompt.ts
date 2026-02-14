@@ -50,13 +50,13 @@ const DESIGN_APIS_PROMPT = `You are an API architect for Node.js backends. Desig
 {database}
 
 Produce an API design:
-- If apiStyle is "rest": include "rest" with baseUrl (e.g. "/api/v1") and endpoints array. Each endpoint: id, moduleId, method (exactly one of GET, POST, PUT, PATCH, DELETE), path, description, auth (boolean), roles (array of strings), requestBody/responseBody/queryParams (object of string keys to string values, or {}).
+- If apiStyle is "rest": include "rest" with baseUrl (e.g. "/api/v1") and endpoints array. Each endpoint: id, moduleId, method (exactly one of GET, POST, PUT, PATCH, DELETE), path, description, auth (boolean), roles (array of strings), requestBody/responseBody/queryParams (flat object of string keys to string values, or {}). responseBody must always be a flat object, never an array—even for list endpoints use a single object describing the shape (e.g. for GET /users use "responseBody": { "items": "array of user objects", "total": "number" }).
 - If apiStyle is "graphql": include "graphql" with types (kind: "type" | "input" | "enum", fields array), queries, mutations. Each operation: name, moduleId, description, auth (boolean), roles (array), args (name, type, required boolean), returnType.
 
 Return ONLY valid JSON (no markdown, no code fences). Required shape:
 {
   "style": "rest" or "graphql",
-  "rest": { "baseUrl": "/api/v1", "endpoints": [ { "id": "ep-1", "moduleId": "module-1", "method": "GET", "path": "/users", "description": "...", "auth": true, "roles": [], "requestBody": {}, "responseBody": {}, "queryParams": {} } ] },
+  "rest": { "baseUrl": "/api/v1", "endpoints": [ { "id": "ep-1", "moduleId": "module-1", "method": "GET", "path": "/users", "description": "List users", "auth": true, "roles": [], "requestBody": {}, "responseBody": { "items": "array of user objects", "total": "number" }, "queryParams": {} } ] },
   "graphql": { "types": [], "queries": [], "mutations": [] }
 }
 - Use lowercase "rest" or "graphql" for style. Omit the branch not used (omit "graphql" when style is "rest", omit "rest" when style is "graphql").`;
