@@ -9,3 +9,4 @@ export {
 } from './tools';
 export type { ToolSet, JsonSchemaObject } from './tools';
 export type { Tool, ToolConfig, ToolContext, ToolExecutionResult } from '../types/tool';
+export { createValidationTool, type ValidationResult } from './validation-factory';

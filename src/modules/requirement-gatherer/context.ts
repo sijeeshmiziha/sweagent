@@ -13,7 +13,6 @@ export function createInitialContext(): RequirementContext {
     stories: [],
     modules: [],
     database: null,
-    apiDesign: null,
     history: [],
     pendingQuestions: [],
   };
@@ -33,7 +32,6 @@ export function mergeStageResult(
     ...(data.stories !== undefined && { stories: data.stories }),
     ...(data.modules !== undefined && { modules: data.modules }),
     ...(data.database !== undefined && { database: data.database }),
-    ...(data.apiDesign !== undefined && { apiDesign: data.apiDesign }),
     ...(data.pendingQuestions !== undefined && { pendingQuestions: data.pendingQuestions }),
   };
 }

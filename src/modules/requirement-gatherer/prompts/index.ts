@@ -18,12 +18,7 @@ export {
   buildGenerateStoriesPrompt,
   buildExtractModulesPrompt,
 } from './requirements.prompt';
-export {
-  DESIGN_DATABASE_SYSTEM_PROMPT,
-  DESIGN_APIS_SYSTEM_PROMPT,
-  buildDesignDatabasePrompt,
-  buildDesignApisPrompt,
-} from './design.prompt';
+export { DESIGN_DATABASE_SYSTEM_PROMPT, buildDesignDatabasePrompt } from './design.prompt';
 export {
   SYNTHESIS_SYSTEM_FRAGMENT,
   SYNTHESIS_USER_PROMPT,

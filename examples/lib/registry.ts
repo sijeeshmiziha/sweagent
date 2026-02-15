@@ -10,7 +10,7 @@ import helloWorld from '../hello-world/index.js';
 import planning from '../planning/index.js';
 import requirementGatherer from '../requirement-gatherer/index.js';
 import dataModeler from '../data-modeler/index.js';
-import dbDesigner from '../db-designer/index.js';
+import dbDesigner from '../db-designer/index.js'; // Now uses merged data-modeler
 import apiDesigner from '../api-designer/index.js';
 import authDesigner from '../auth-designer/index.js';
 import backendArchitect from '../backend-architect/index.js';
@@ -20,6 +20,7 @@ import frontendArchitect from '../frontend-architect/index.js';
 import reactBuilder from '../react-builder/index.js';
 import nextjsBuilder from '../nextjs-builder/index.js';
 import executionPlanner from '../execution-planner/index.js';
+import todoPlanner from '../todo-planner/index.js';
 
 /** All example modules in recommended order. */
 export const modules: ExampleModule[] = [
@@ -38,4 +39,5 @@ export const modules: ExampleModule[] = [
   reactBuilder,
   nextjsBuilder,
   executionPlanner,
+  todoPlanner,
 ];

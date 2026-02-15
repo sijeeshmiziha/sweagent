@@ -122,55 +122,6 @@ export interface DatabaseDesign {
   entities: DatabaseEntity[];
 }
 
-/** REST API design */
-export interface RestEndpoint {
-  id: string;
-  moduleId: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  path: string;
-  description: string;
-  auth: boolean;
-  roles: string[];
-  requestBody?: Record<string, string>;
-  responseBody?: Record<string, string>;
-  queryParams?: Record<string, string>;
-}
-
-export interface RestApiDesign {
-  baseUrl: string;
-  endpoints: RestEndpoint[];
-}
-
-/** GraphQL API design */
-export interface GraphqlTypeDefinition {
-  name: string;
-  kind: 'type' | 'input' | 'enum';
-  fields: { name: string; type: string; description: string }[];
-}
-
-export interface GraphqlOperation {
-  name: string;
-  moduleId: string;
-  description: string;
-  auth: boolean;
-  roles: string[];
-  args: { name: string; type: string; required: boolean }[];
-  returnType: string;
-}
-
-export interface GraphqlApiDesign {
-  types: GraphqlTypeDefinition[];
-  queries: GraphqlOperation[];
-  mutations: GraphqlOperation[];
-}
-
-/** Combined API design: REST and/or GraphQL */
-export interface ApiDesign {
-  style: 'rest' | 'graphql';
-  rest?: RestApiDesign;
-  graphql?: GraphqlApiDesign;
-}
-
 /** Summary for final requirement document */
 export interface RequirementSummary {
   totalActors: number;
@@ -178,7 +129,6 @@ export interface RequirementSummary {
   totalStories: number;
   totalModules: number;
   totalEntities: number;
-  totalEndpoints: number;
   overview: string;
 }
 
@@ -190,7 +140,6 @@ export interface FinalRequirement {
   stories: Story[];
   modules: Module[];
   database: DatabaseDesign;
-  apiDesign: ApiDesign;
   summary: RequirementSummary;
 }
 
@@ -203,7 +152,6 @@ export interface RequirementContext {
   stories: Story[];
   modules: Module[];
   database: DatabaseDesign | null;
-  apiDesign: ApiDesign | null;
   history: ChatEntry[];
   pendingQuestions: Question[];
 }

@@ -1,6 +1,6 @@
 /**
  * requirement-gatherer module - requirements pipeline (InfoProcessing, UsersFinding, Flows, Stories, Modules)
- * Note: Actor, ExtractedFlow, ExtractedStory are not re-exported to avoid conflict with db-designer (same shapes).
+ * Note: apiDesign removed; API design is delegated to the api-designer module.
  */
 
 export * from './schemas';

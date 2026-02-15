@@ -49,7 +49,6 @@ export function buildContextSummary(ctx: RequirementContext): string {
   if (ctx.stories.length) parts.push(`Stories: ${ctx.stories.length}`);
   if (ctx.modules.length) parts.push(`Modules: ${ctx.modules.length}`);
   if (ctx.database) parts.push(`Database: ${ctx.database.type}`);
-  if (ctx.apiDesign) parts.push(`API design: ${ctx.apiDesign.style}`);
   return parts.join('. ') || 'No context yet';
 }
 

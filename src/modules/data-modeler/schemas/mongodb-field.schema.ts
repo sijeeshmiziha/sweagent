@@ -1,10 +1,10 @@
 /**
- * Field-level schema for MongoDB collection fields
+ * MongoDB field-level schema (merged from db-designer)
  */
 
 import { z } from 'zod';
 
-export const fieldSchema = z.object({
+export const mongoFieldSchema = z.object({
   fieldName: z.string().describe('fieldName must be in camelCase'),
   fieldType: z
     .string()
@@ -61,4 +61,4 @@ export const fieldSchema = z.object({
   isPrivate: z.coerce.boolean().default(false).describe('True if password field, else false'),
 });
 
-export type TFieldSchema = z.infer<typeof fieldSchema>;
+export type TMongoFieldSchema = z.infer<typeof mongoFieldSchema>;

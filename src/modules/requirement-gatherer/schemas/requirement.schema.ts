@@ -1,5 +1,6 @@
 /**
  * Zod schemas for FinalRequirement, RequirementSummary
+ * Note: apiDesign removed -- API design is delegated to the api-designer module.
  */
 
 import { z } from 'zod';
@@ -9,7 +10,6 @@ import { flowSchema } from './flow.schema';
 import { storySchema } from './story.schema';
 import { extractedModuleSchema } from './module.schema';
 import { databaseDesignSchema } from './database.schema';
-import { apiDesignSchema } from './api-design.schema';
 
 export const requirementSummarySchema = z.object({
   totalActors: z.number(),
@@ -17,7 +17,6 @@ export const requirementSummarySchema = z.object({
   totalStories: z.number(),
   totalModules: z.number(),
   totalEntities: z.number(),
-  totalEndpoints: z.number(),
   overview: z.string(),
 });
 
@@ -28,7 +27,6 @@ export const finalRequirementSchema = z.object({
   stories: z.array(storySchema),
   modules: z.array(extractedModuleSchema),
   database: databaseDesignSchema,
-  apiDesign: apiDesignSchema,
   summary: requirementSummarySchema,
 });
 

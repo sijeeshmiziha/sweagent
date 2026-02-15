@@ -1,11 +1,12 @@
 /**
- * Redesign prompt - update existing schema based on user feedback
+ * MongoDB redesign prompt - update existing schema based on feedback
+ * (merged from db-designer)
  */
 
-import { DB_DESIGN_SYSTEM_PROMPT } from './system.prompt';
+import { MONGODB_SYSTEM_PROMPT } from './mongodb-system.prompt';
 
-export function createRedesignPrompt(existingSchema: string, userFeedback: string): string {
-  return `${DB_DESIGN_SYSTEM_PROMPT}
+export function createMongoRedesignPrompt(existingSchema: string, feedback: string): string {
+  return `${MONGODB_SYSTEM_PROMPT}
 
 Update the existing MongoDB schema based on user feedback.
 
@@ -18,7 +19,7 @@ Update the existing MongoDB schema based on user feedback.
 ${existingSchema}
 
 ## User Feedback
-${userFeedback}
+${feedback}
 
 Return the updated schema as a valid JSON object matching the original schema format.
 IMPORTANT: Return ONLY the JSON object, no markdown code blocks, no explanations.`;

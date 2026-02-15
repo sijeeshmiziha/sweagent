@@ -20,10 +20,9 @@ export async function runSynthesisStage(
   logger?.debug('Synthesis stage started');
 
   const brief = context.projectBrief;
-  if (!brief || !context.database || !context.apiDesign) {
+  if (!brief || !context.database) {
     return {
-      message:
-        'Missing project brief, database design, or API design. Complete earlier stages first.',
+      message: 'Missing project brief or database design. Complete earlier stages first.',
       advance: false,
       data: {},
     };
@@ -34,8 +33,7 @@ export async function runSynthesisStage(
     JSON.stringify(context.flows),
     JSON.stringify(context.stories),
     JSON.stringify(context.modules),
-    JSON.stringify(context.database),
-    JSON.stringify(context.apiDesign)
+    JSON.stringify(context.database)
   );
   const systemContent = `${REQUIREMENT_GATHERER_SYSTEM_PROMPT}\n\n${SYNTHESIS_SYSTEM_FRAGMENT}`;
   const messages = [

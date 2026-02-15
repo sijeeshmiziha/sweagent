@@ -1,5 +1,6 @@
 /**
  * requirement-gatherer schemas - Zod schemas for structured outputs
+ * Note: api-design schema removed; API design is delegated to the api-designer module.
  */
 
 export {
@@ -24,20 +25,6 @@ export {
   type DatabaseEntity,
   type DatabaseDesign,
 } from './database.schema';
-export {
-  restEndpointSchema,
-  restApiDesignSchema,
-  graphqlTypeDefinitionSchema,
-  graphqlOperationSchema,
-  graphqlApiDesignSchema,
-  apiDesignSchema,
-  type RestEndpoint,
-  type RestApiDesign,
-  type GraphqlTypeDefinition,
-  type GraphqlOperation,
-  type GraphqlApiDesign,
-  type ApiDesign,
-} from './api-design.schema';
 export {
   requirementSummarySchema,
   finalRequirementSchema,

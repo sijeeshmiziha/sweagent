@@ -1,5 +1,6 @@
 /**
  * Zod schemas for RequirementContext, ProjectBrief, Question, ChatEntry
+ * Note: apiDesign removed -- API design is delegated to the api-designer module.
  */
 
 import { z } from 'zod';
@@ -8,7 +9,6 @@ import { flowSchema } from './flow.schema';
 import { storySchema } from './story.schema';
 import { extractedModuleSchema } from './module.schema';
 import { databaseDesignSchema } from './database.schema';
-import { apiDesignSchema } from './api-design.schema';
 
 export const projectBriefSchema = z.object({
   name: z.string(),
@@ -42,7 +42,6 @@ export const requirementContextSchema = z.object({
   stories: z.array(storySchema),
   modules: z.array(extractedModuleSchema),
   database: databaseDesignSchema.nullable(),
-  apiDesign: apiDesignSchema.nullable(),
   history: z.array(chatEntrySchema),
   pendingQuestions: z.array(questionSchema),
 });

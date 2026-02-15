@@ -1,12 +1,12 @@
 /**
- * design_database_pro tool - generates MongoDB schema from structured requirements (uses AI)
+ * design_database_pro tool - MongoDB schema from structured requirements (merged from db-designer)
  */
 
 import { z } from 'zod';
 import type { Model } from '../../../lib/types/model';
 import { defineTool } from '../../../lib/tools';
-import { projectSchema, type TBackendProjectSchema } from '../schemas';
-import { createProDbDesignPrompt, extractDataEntities, extractRoles } from '../prompts';
+import { mongoProjectSchema, type TMongoProjectSchema } from '../schemas';
+import { createMongoProDesignPrompt, extractDataEntities, extractRoles } from '../prompts';
 import { parseModelJsonResponse } from '../../../lib/utils';
 
 const structuredInputSchema = z.object({
@@ -69,21 +69,21 @@ const structuredInputSchema = z.object({
 });
 
 /**
- * Creates the design_database_pro tool. Requires a model for schema generation.
+ * Creates the design_database_pro tool for structured 5-phase MongoDB analysis.
  */
 export function createDesignDatabaseProTool(model: Model) {
   return defineTool({
     name: 'design_database_pro',
     description:
-      'Generate a MongoDB schema from structured requirements (project name, goal, actors, flows, user stories with dataInvolved, technical requirements). Use for pro-level 5-phase analysis. Returns dbDesign and metadata (entitiesDetected, rolesExtracted).',
+      'Generate a MongoDB schema from structured requirements (actors, flows, stories, technical requirements). Returns dbDesign and metadata.',
     input: structuredInputSchema,
     handler: async (
       input
     ): Promise<{
-      dbDesign: TBackendProjectSchema;
+      dbDesign: TMongoProjectSchema;
       metadata: { entitiesDetected: string[]; rolesExtracted: string[] };
     }> => {
-      const userPrompt = createProDbDesignPrompt(input);
+      const userPrompt = createMongoProDesignPrompt(input);
       const messages = [
         {
           role: 'system' as const,
@@ -92,7 +92,7 @@ export function createDesignDatabaseProTool(model: Model) {
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.2, maxOutputTokens: 16384 });
-      const dbDesign = parseModelJsonResponse(response.text, projectSchema);
+      const dbDesign = parseModelJsonResponse(response.text, mongoProjectSchema);
       const metadata = {
         entitiesDetected: extractDataEntities(input.stories),
         rolesExtracted: extractRoles(input.actors),

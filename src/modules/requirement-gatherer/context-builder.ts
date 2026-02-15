@@ -11,7 +11,6 @@ import type {
   Story,
   Module,
   DatabaseDesign,
-  ApiDesign,
   ChatEntry,
   Question,
 } from './types';
@@ -56,11 +55,6 @@ export class RequirementContextBuilder {
     return this;
   }
 
-  withApiDesign(apiDesign: ApiDesign | null): this {
-    this.data.apiDesign = apiDesign;
-    return this;
-  }
-
   withHistory(history: ChatEntry[]): this {
     this.data.history = history;
     return this;
@@ -85,7 +79,6 @@ export class RequirementContextBuilder {
       stories: this.data.stories ?? [],
       modules: this.data.modules ?? [],
       database: this.data.database ?? null,
-      apiDesign: this.data.apiDesign ?? null,
       history: this.data.history ?? [],
       pendingQuestions: this.data.pendingQuestions ?? [],
     };
