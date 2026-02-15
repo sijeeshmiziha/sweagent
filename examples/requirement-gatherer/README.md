@@ -1,34 +1,52 @@
 # Requirement Gatherer Example
 
-Interactive multi-turn chat that gathers project requirements and produces a final requirement document (database + API design).
+Multi-stage pipeline producing structured JSON requirements with actors, user flows, stories, and module breakdowns.
 
-## How to run
+## Quick Start
 
-- **Interactive (chat):** Leave `REQUIREMENT` unset. You'll be prompted for each message; say "continue" to advance stages.
-  ```bash
-  npm run example:requirement-gatherer
-  # or
-  npx tsx --env-file=.env examples/requirement-gatherer/01-requirement-gatherer-agent.ts
-  ```
-- **One-shot:** Set `REQUIREMENT` (or `AGENT_INPUT`) to a short project description. The example runs that input then auto-advances with "continue" for up to 10 turns.
-  ```bash
-  REQUIREMENT="Task manager app with REST API" npm run example:requirement-gatherer
-  ```
-- **Save output:** Set `SAVE_REQUIREMENT=1` to write the final requirement JSON to `requirement-output.json` in the current directory.
-  ```bash
-  SAVE_REQUIREMENT=1 npm run example:requirement-gatherer
-  ```
+```bash
+npm install
+cp .env.example .env                      # add OPENAI_API_KEY
+npm run example:requirement-gatherer       # interactive chat mode
+```
 
-Env: `OPENAI_API_KEY` (or provider-specific key), optional `PROVIDER`, `MODEL`.
+## What It Does
 
-## How to integrate in your app
+Walks through **discovery -> requirements -> design -> complete** stages. Unlike the Planning Agent (markdown output), the Requirement Gatherer produces structured JSON data that downstream agents can consume programmatically: actors, user flows, user stories, modules, database design, and API design.
 
-1. Call `processRequirementChat(userMessage, context, config)` for each user turn.
-2. Persist `result.context` between turns and pass it as the second argument on the next call.
-3. Show `result.message` to the user; if `result.questions?.length`, present them and use the user's answers in the next message.
-4. When `result.finalRequirement` is set, the flow is complete; use that object (e.g. database + API design).
+## Run
 
-```ts
+```bash
+# Interactive chat -- describe your project, say "continue" to advance stages
+npm run example:requirement-gatherer
+
+# One-shot -- provide requirement, auto-advances through stages
+REQUIREMENT="Task manager app with REST API" npm run example:requirement-gatherer
+
+# Save output to file
+SAVE_REQUIREMENT=1 npm run example:requirement-gatherer
+
+# Direct script
+npm run example -- examples/requirement-gatherer/01-requirement-gatherer-agent.ts
+```
+
+## Inputs
+
+| Variable           | Description                                            | Default       |
+| ------------------ | ------------------------------------------------------ | ------------- |
+| `OPENAI_API_KEY`   | OpenAI API key                                         | **required**  |
+| `PROVIDER`         | AI provider                                            | `openai`      |
+| `MODEL`            | Model name                                             | `gpt-4o-mini` |
+| `REQUIREMENT`      | Project description (skips interactive chat)           | --            |
+| `SAVE_REQUIREMENT` | Set to `1` to save output as `requirement-output.json` | --            |
+
+## Output
+
+Structured JSON with actors (with permissions), user flows (step-by-step), user stories (with acceptance criteria), modules (with CRUD), database design (schemas, relationships), and API design (REST/GraphQL endpoints).
+
+## How to Integrate
+
+```typescript
 import { processRequirementChat } from 'sweagent';
 import type { RequirementContext } from 'sweagent';
 
@@ -41,4 +59,39 @@ context = result.context;
 // Use result.message, result.questions, result.finalRequirement
 ```
 
-Public API: `processRequirementChat`, `runRequirementGathererAgent`, `createInitialContext`, types from `sweagent` (see `src/modules/requirement-gatherer/index.ts`).
+## Pipeline Example
+
+Feed the output into downstream agents:
+
+```typescript
+import { runRequirementGathererAgent, runDataModelerAgent } from 'sweagent';
+
+const requirements = await runRequirementGathererAgent({
+  input: 'Task manager with teams and Kanban boards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+
+const dataModel = await runDataModelerAgent({
+  input: `Design data model from:\n${requirements.output}`,
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+```
+
+## Integration with Coding Agents
+
+```typescript
+import { writeFileSync } from 'fs';
+
+writeFileSync('requirements.json', requirements.output);
+
+// Cursor: "Implement the project described in @requirements.json"
+// Claude Code: "Read requirements.json and implement the user module first"
+```
+
+## Related
+
+- [Planning Agent](../planning/) -- Markdown-based planning (broader scope)
+- [Data Modeler](../data-modeler/) -- Design data models from requirements
+- [API Designer](../api-designer/) -- Design APIs from requirements
+- [Full Pipeline](../../README.md#full-pipeline) -- Complete agent chaining workflow
+- [Module Reference](../../src/modules/requirement-gatherer/README.md) -- Full API docs
