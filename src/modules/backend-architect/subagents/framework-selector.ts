@@ -23,14 +23,21 @@ const FRAMEWORK_SELECTOR_SYSTEM_PROMPT = `You are a backend technology advisor. 
 - Part of a federated GraphQL architecture
 
 ### Choose "both" when:
-- Apollo subgraph for main data API + Express gateway for webhooks, file uploads, health checks
+- Apollo subgraph for main data API + Express for webhooks, file uploads, health checks
 - Need both REST endpoints (for external integrations) and GraphQL (for frontend)
+- When "both" is selected, an Apollo Gateway is used to compose subgraphs into a unified API:
+  - Gateway is the only public entry point for GraphQL
+  - Subgraphs are internal services, not exposed to clients directly
+  - Gateway uses IntrospectAndCompose for schema discovery
+  - RemoteGraphQLDataSource forwards auth headers to subgraphs
+  - Express handles non-GraphQL concerns (webhooks, file uploads)
 
 ## Output Format
 State your recommendation clearly:
 - Framework: express | apollo | both
 - Reasoning: 2-3 sentences explaining why
 - Trade-offs: what you'd lose with the alternative
+- If "both": describe which concerns go to Express vs Apollo Gateway vs subgraphs
 
 Respond with structured analysis. Do NOT return JSON.`;
 

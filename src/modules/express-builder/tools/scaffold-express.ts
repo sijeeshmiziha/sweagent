@@ -17,15 +17,15 @@ function toTemplateContext(config: TExpressConfig): TemplateContext {
     appName: config.appName,
     port: config.port,
     database: config.database,
-    controllers: config.controllers,
+    routers: config.routers,
     models: config.models,
     middleware: config.middleware,
     envVars: config.envVars,
-    modules: config.controllers.map(c => ({
-      name: c.resource,
-      pascalName: c.name.replace('Controller', ''),
-      camelName: c.resource,
-      methods: c.methods,
+    modules: config.routers.map(r => ({
+      name: r.resource,
+      pascalName: r.name.charAt(0).toUpperCase() + r.name.slice(1),
+      camelName: r.resource,
+      methods: r.methods,
     })),
   };
 }

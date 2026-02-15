@@ -16,7 +16,7 @@ export function createGenerateExpressTool(model: Model) {
   return defineTool({
     name: 'generate_express',
     description:
-      'Generate a complete Express.js application configuration from data model and API design. Returns controllers, models, middleware, and routes as JSON.',
+      'Generate a complete Express.js application configuration from data model and API design. Returns routers, models, middleware, and env vars as JSON.',
     input: z.object({
       requirement: z.string().describe('Data model, API design, and project requirements'),
     }),

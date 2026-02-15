@@ -9,7 +9,7 @@ const httpMethodSchema = z
   .transform(s => s.toUpperCase().trim())
   .pipe(z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']));
 
-export const controllerMethodSchema = z.object({
+export const routerMethodSchema = z.object({
   name: z.string(),
   httpMethod: httpMethodSchema,
   path: z.string(),
@@ -19,11 +19,11 @@ export const controllerMethodSchema = z.object({
   description: z.string().default(''),
 });
 
-export const controllerSchema = z.object({
+export const routerSchema = z.object({
   name: z.string(),
   resource: z.string(),
   basePath: z.string(),
-  methods: z.array(controllerMethodSchema).default([]),
+  methods: z.array(routerMethodSchema).default([]),
 });
 
 export const modelFieldSchema = z.object({
@@ -60,11 +60,10 @@ export const expressConfigSchema = z.object({
   appName: z.string().default('app'),
   port: z.number().default(3000),
   database: z.string().default('mongodb'),
-  controllers: z.array(controllerSchema).default([]),
+  routers: z.array(routerSchema).default([]),
   models: z.array(modelSchema).default([]),
   middleware: z.array(middlewareConfigSchema).default([]),
   envVars: z.array(z.string()).default([]),
-  folderStructure: z.array(z.string()).default([]),
 });
 
 export type TExpressConfig = z.infer<typeof expressConfigSchema>;

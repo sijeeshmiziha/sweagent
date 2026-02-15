@@ -7,19 +7,20 @@ export const DESIGN_EXPRESS_PROMPT = `## Requirements:
 
 Generate an Express.js application configuration. Include:
 
-1. Controllers: one per resource with RESTful methods (GET, POST, PUT, DELETE).
-2. Models: Mongoose models with fields, types, required, unique, refs, defaults, indexes.
-3. Middleware: auth (JWT), validation (Zod), error handler, CORS, rate limiting, logging.
-4. Env vars: PORT, DATABASE_URL, JWT_SECRET, etc.
-5. Folder structure: src/controllers/, src/models/, src/middleware/, src/routes/, src/config/.
+1. Routers: one per resource, co-located with controller and test spec. Each router has RESTful methods (GET, POST, PUT, DELETE).
+2. Health check: a default /health router is always included.
+3. Models: Mongoose models with fields, types, required, unique, refs, defaults, indexes.
+4. Middleware: auth (JWT), validation (Zod), error handler, CORS, rate limiting, logging.
+5. Env vars: PORT, DATABASE_URL, JWT_SECRET, NODE_ENV, etc.
+6. Folder structure: src/routers/{name}/ with {name}.controller.ts, {name}.router.ts, {name}.spec.ts per feature.
 
 Return ONLY valid JSON:
 {
   "appName": "my-api",
   "port": 3000,
   "database": "mongodb",
-  "controllers": [{
-    "name": "UserController",
+  "routers": [{
+    "name": "users",
     "resource": "users",
     "basePath": "/api/users",
     "methods": [{
@@ -40,8 +41,7 @@ Return ONLY valid JSON:
     "indexes": ["email"]
   }],
   "middleware": [{ "name": "authMiddleware", "type": "auth", "config": {} }],
-  "envVars": ["PORT", "DATABASE_URL", "JWT_SECRET"],
-  "folderStructure": ["src/", "src/controllers/", "src/models/", "src/middleware/", "src/routes/", "src/config/"]
+  "envVars": ["PORT", "DATABASE_URL", "JWT_SECRET", "NODE_ENV"]
 }`;
 
 export function buildDesignExpressPrompt(requirement: string): string {

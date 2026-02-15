@@ -4,7 +4,7 @@
 
 import { defineSubagent } from '../../../lib/subagents';
 
-const SCHEMA_GENERATOR_SYSTEM_PROMPT = `You are a GraphQL schema specialist. Given a data model, you generate GraphQL type definitions.
+const SCHEMA_GENERATOR_SYSTEM_PROMPT = `You are a GraphQL schema specialist for Apollo Federation v2 subgraphs. Given a data model, you generate GraphQL type definitions using buildSubgraphSchema.
 
 ## Type Generation
 For each entity in the data model:
@@ -14,9 +14,16 @@ For each entity in the data model:
 - Add proper nullability (! for required fields)
 - Add [Type] for array/list fields
 
-## Directive Annotations
+## Federation Directives
+- @key(fields: "id") on entity types that can be referenced across subgraphs
+- @external marks a field as owned by another subgraph
+- @requires(fields: "weight") declares fields needed from the entity to resolve a field
+- @provides(fields: "name") declares fields on a return type that this subgraph can resolve
 - @auth directive on types/fields that require authentication
-- @key directive for Apollo Federation entity references
+
+## Cache Directives (Redis)
+- @cacheSet(type: "Entity", identifier: "_id") on query resolvers
+- @cachePurge(type: "Entity", identifier: "_id") on mutation resolvers
 
 ## Relationships
 - Reference types for foreign keys (e.g. author: User instead of authorId: ID)

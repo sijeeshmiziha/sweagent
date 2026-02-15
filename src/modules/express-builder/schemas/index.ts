@@ -3,8 +3,8 @@
  */
 
 export {
-  controllerMethodSchema,
-  controllerSchema,
+  routerMethodSchema,
+  routerSchema,
   modelFieldSchema,
   modelSchema,
   middlewareConfigSchema,

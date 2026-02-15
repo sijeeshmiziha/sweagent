@@ -25,6 +25,8 @@ export const graphqlTypeSchema = z.object({
   fields: z.array(graphqlFieldSchema).default([]),
   values: z.array(z.string()).default([]),
   description: z.string().default(''),
+  isEntity: z.coerce.boolean().default(false),
+  keyFields: z.array(z.string()).default([]),
 });
 
 export const resolverOperationSchema = z.object({
@@ -43,6 +45,7 @@ export const subgraphModuleSchema = z.object({
   types: z.array(graphqlTypeSchema).default([]),
   operations: z.array(resolverOperationSchema).default([]),
   datasource: z.string().default(''),
+  loader: z.string().default(''),
 });
 
 export const subgraphConfigSchema = z.object({
@@ -52,6 +55,7 @@ export const subgraphConfigSchema = z.object({
   modules: z.array(subgraphModuleSchema).default([]),
   sharedTypes: z.array(graphqlTypeSchema).default([]),
   authDirective: z.coerce.boolean().default(true),
+  cacheDirective: z.coerce.boolean().default(false),
   envVars: z.array(z.string()).default([]),
 });
 

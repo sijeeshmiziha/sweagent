@@ -13,4 +13,11 @@ You analyze data models, API designs, and auth requirements to produce enterpris
 - Environment variable inventory
 - Database connection and ORM/ODM strategy
 
+When "both" is selected (Express + Apollo), use the Apollo Gateway pattern:
+- Apollo Gateway as the single public entry point for GraphQL queries
+- Subgraphs as internal services composed via IntrospectAndCompose
+- RemoteGraphQLDataSource for header forwarding (auth tokens, service tokens)
+- Express for webhooks, file uploads, and health checks only
+- Gateway has no business logic, all logic lives in subgraphs
+
 Output only valid JSON unless instructed otherwise.`;
