@@ -1,7 +1,7 @@
 # Examples
 
 <p align="center">
-  <strong>Runnable examples for every domain agent</strong> -- planning pipelines, requirement gathering, database design, frontend generation, and the core framework.
+  <strong>Runnable examples for all 14 domain agents</strong> -- planning, requirements, data modeling, API design, auth, backend, frontend, and more. Generate specs, then hand them to Cursor, Claude Code, or Codex.
 </p>
 
 <p align="center">
@@ -19,13 +19,23 @@ Each example demonstrates a domain-specialized agent pipeline. Domain agents wal
 
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [Using sweagent with Coding Agents](#using-sweagent-with-coding-agents)
 - [Usage in Your Project](#usage-in-your-project)
 - [How to Run](#how-to-run)
 - [Domain Agent Examples](#domain-agent-examples)
   - [Planning Agent](#planning-agent)
   - [Requirement Gatherer Agent](#requirement-gatherer-agent)
+  - [Data Modeler Agent](#data-modeler-agent)
   - [DB Designer Agent](#db-designer-agent)
+  - [API Designer Agent](#api-designer-agent)
+  - [Auth Designer Agent](#auth-designer-agent)
+  - [Backend Architect Agent](#backend-architect-agent)
+  - [Express Builder Agent](#express-builder-agent)
+  - [Apollo Builder Agent](#apollo-builder-agent)
+  - [Frontend Architect Agent](#frontend-architect-agent)
   - [React Builder Agent](#react-builder-agent)
+  - [Next.js Builder Agent](#nextjs-builder-agent)
+  - [Execution Planner Agent](#execution-planner-agent)
 - [Core Framework Examples](#core-framework-examples)
 - [Hello World (Template)](#hello-world-template)
 - [Troubleshooting](#troubleshooting)
@@ -70,6 +80,34 @@ cp .env.example .env
 npm install sweagent
 # Set API keys in .env or export them (see Usage in Your Project below)
 ```
+
+---
+
+## Using sweagent with Coding Agents
+
+The primary use case for sweagent is generating structured specs that make Cursor, Claude Code, and Codex dramatically more effective. Here's the typical workflow:
+
+1. **Generate specs** -- Run one or more sweagent agents to produce plans, requirements, schemas, or configs
+2. **Save to files** -- Write the outputs to your project directory
+3. **Hand to your coding agent** -- Reference the spec files in Cursor chat, Claude Code's CLAUDE.md, or Codex context
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+// Generate a plan
+const { plan } = await runPlanningWithResult({
+  input: 'Task manager with teams, Kanban boards, and time tracking',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+writeFileSync('plan.md', plan);
+
+// Cursor: "Implement @plan.md step by step"
+// Claude Code: save as CLAUDE.md for automatic context
+// Codex: reference plan.md in your prompt
+```
+
+See the [main README](../README.md#use-with-cursor-claude-code-and-codex) for detailed integration guides for each coding agent.
 
 ---
 
@@ -242,6 +280,132 @@ npm run example:requirement-gatherer
 
 ---
 
+### Data Modeler Agent
+
+| Example                 | Path                                             | Description                                                                                        |
+| ----------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 01 - Data Modeler Agent | `examples/data-modeler/01-data-modeler-agent.ts` | Designs MongoDB/PostgreSQL data models with entity analysis, relationship mapping, and refinement. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`entity-analyzer`, `relationship-mapper`, `schema-refiner`) --> Tools (`design_schema`, `validate_data_model`)
+
+**Run**: `npm run example -- examples/data-modeler/01-data-modeler-agent.ts`
+
+**Output**: Data model JSON with entities, fields, indexes, and relationships. Feed this to your coding agent to implement Prisma or Mongoose models.
+
+---
+
+### API Designer Agent
+
+| Example                 | Path                                             | Description                                                               |
+| ----------------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| 01 - API Designer Agent | `examples/api-designer/01-api-designer-agent.ts` | Designs REST and/or GraphQL APIs with endpoint definitions and contracts. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`endpoint-analyzer`, `contract-designer`) --> Tools (`design_api`, `validate_api`)
+
+**Run**: `npm run example -- examples/api-designer/01-api-designer-agent.ts`
+
+**Output**: API design JSON with REST endpoints and/or GraphQL operations, request/response contracts, and auth requirements.
+
+---
+
+### Auth Designer Agent
+
+| Example                  | Path                                               | Description                                                                     |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 01 - Auth Designer Agent | `examples/auth-designer/01-auth-designer-agent.ts` | Designs auth systems with strategies, flows, middleware, and role-based access. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`security-analyzer`, `flow-designer`) --> Tools (`design_auth`, `validate_auth`)
+
+**Run**: `npm run example -- examples/auth-designer/01-auth-designer-agent.ts`
+
+**Output**: Auth design JSON with strategy, flows (signup, login, password reset), middleware, roles, and security policies.
+
+---
+
+### Backend Architect Agent
+
+| Example                      | Path                                                       | Description                                                             |
+| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 01 - Backend Architect Agent | `examples/backend-architect/01-backend-architect-agent.ts` | Plans backend architecture with framework selection and service design. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`framework-selector`, `service-planner`) --> Tools (`design_backend`, `validate_backend`)
+
+**Run**: `npm run example -- examples/backend-architect/01-backend-architect-agent.ts`
+
+**Output**: Backend design JSON with framework choice, services, middleware, routes, and folder structure.
+
+---
+
+### Express Builder Agent
+
+| Example                    | Path                                                   | Description                                                              |
+| -------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------ |
+| 01 - Express Builder Agent | `examples/express-builder/01-express-builder-agent.ts` | Generates Express.js REST API configuration with routers and middleware. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`route-generator`, `middleware-configurator`) --> Tools (`generate_express`, `validate_express`)
+
+**Run**: `npm run example -- examples/express-builder/01-express-builder-agent.ts`
+
+**Output**: Express config JSON with routers, models, middleware, and env vars.
+
+---
+
+### Apollo Builder Agent
+
+| Example                   | Path                                                 | Description                                            |
+| ------------------------- | ---------------------------------------------------- | ------------------------------------------------------ |
+| 01 - Apollo Builder Agent | `examples/apollo-builder/01-apollo-builder-agent.ts` | Generates Apollo Federation v2 subgraph configuration. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`schema-generator`, `resolver-planner`) --> Tools (`generate_subgraph`, `validate_subgraph`)
+
+**Run**: `npm run example -- examples/apollo-builder/01-apollo-builder-agent.ts`
+
+**Output**: Subgraph config JSON with modules, GraphQL types, resolver operations, and datasources.
+
+---
+
+### Frontend Architect Agent
+
+| Example                       | Path                                                         | Description                                                      |
+| ----------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| 01 - Frontend Architect Agent | `examples/frontend-architect/01-frontend-architect-agent.ts` | Plans frontend architecture with pages, components, and routing. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`page-planner`, `component-analyzer`, `framework-selector`)
+
+**Run**: `npm run example -- examples/frontend-architect/01-frontend-architect-agent.ts`
+
+**Output**: Frontend design JSON with pages, reusable components, state management, and routing strategy.
+
+---
+
+### Next.js Builder Agent
+
+| Example                    | Path                                                 | Description                                 |
+| -------------------------- | ---------------------------------------------------- | ------------------------------------------- |
+| 01 - Next.js Builder Agent | `examples/nextjs-builder/01-nextjs-builder-agent.ts` | Generates Next.js App Router configuration. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`route-planner`, `api-route-generator`) --> Tools (`generate_nextjs`, `validate_nextjs`)
+
+**Run**: `npm run example -- examples/nextjs-builder/01-nextjs-builder-agent.ts`
+
+**Output**: Next.js config JSON with pages, layouts, API routes, server actions, and middleware.
+
+---
+
+### Execution Planner Agent
+
+| Example                      | Path                                                       | Description                                                                 |
+| ---------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 01 - Execution Planner Agent | `examples/execution-planner/01-execution-planner-agent.ts` | Creates phased implementation plans with edge cases and testing checklists. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`edge-case-analyzer`, `testing-strategist`) --> Tools (`create_execution_plan`, `validate_execution_plan`)
+
+**Run**: `npm run example -- examples/execution-planner/01-execution-planner-agent.ts`
+
+**Output**: Execution plan JSON with phases, edge cases, testing checklist, and security/performance notes.
+
+---
+
 ## Core Framework Examples
 
 These examples demonstrate the shared framework that all domain agents are built on: models, tools, agent loops, and sub-agent delegation.
@@ -301,7 +465,9 @@ For long-running agent calls, the default timeout may be too low. Increase timeo
 ## Next Steps
 
 - [Main README](../README.md) -- Overview, installation, and full documentation
-- [Domain Agents](../README.md#domain-agents) -- All domain agent pipelines with architecture diagrams
+- [Use with Coding Agents](../README.md#use-with-cursor-claude-code-and-codex) -- Cursor, Claude Code, and Codex integration guides
+- [Domain Agents](../README.md#domain-agents) -- All 14 domain agent pipelines with architecture diagrams
+- [Full Pipeline](../README.md#full-pipeline) -- Chain agents together for end-to-end planning
 - [Planning Pipeline](../README.md#planning-pipeline) -- 4-stage planning pipeline for coding agents
 - [Getting Started](../README.md#getting-started) -- Step-by-step from model to agent to planning
 - [API Reference](../README.md#api-reference) -- Models, tools, agents, sub-agents, planning, MCP

@@ -217,3 +217,53 @@ npm run example:requirement-gatherer
 # One-shot
 REQUIREMENT="Build a task manager with users and projects" npm run example:requirement-gatherer
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+When you tell Cursor or Claude Code to "build a task manager," it makes up the data model, guesses the API structure, and skips user flows. The Requirement Gatherer produces structured JSON with exact actors, user flows, stories, modules, database design, and API design -- so your coding agent knows precisely what to build, for whom, and how the pieces connect.
+
+## Integration with Coding Agents
+
+Generate structured requirements and save them as a spec file your coding agent can reference:
+
+```typescript
+import { runRequirementGathererAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runRequirementGathererAgent({
+  input: 'Project management tool with teams, Kanban boards, and time tracking',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('requirements.json', result.output);
+
+// Cursor: "Implement the project described in @requirements.json"
+// Claude Code: "Read requirements.json and implement the user module first"
+// Codex: Feed requirements.json as context
+```
+
+The structured JSON output also feeds directly into downstream sweagent modules (Data Modeler, API Designer, etc.) for a full planning pipeline. See the [Full Pipeline](../../README.md#full-pipeline) section in the main README.
+
+## Feeding Output to Downstream Agents
+
+The Requirement Gatherer's structured output can drive other sweagent agents:
+
+```typescript
+import { runRequirementGathererAgent, runDataModelerAgent } from 'sweagent';
+
+const requirements = await runRequirementGathererAgent({
+  input: 'Task manager with teams and projects',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+// Feed requirements into the Data Modeler
+const dataModel = await runDataModelerAgent({
+  input: `Design data model from these requirements:\n${requirements.output}`,
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```

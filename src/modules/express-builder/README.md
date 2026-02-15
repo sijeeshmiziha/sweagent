@@ -266,3 +266,29 @@ The planning module uses the express-builder when the backend-architect selects 
 ```typescript
 import { routeGeneratorSubagent, middlewareConfiguratorSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Coding agents build Express apps with inconsistent route patterns, missing middleware, and no clear module boundaries. The Express Builder generates a complete configuration with routers, models, middleware stack, and environment variables -- following a co-located router pattern that your coding agent can scaffold into production-ready code.
+
+## Integration with Coding Agents
+
+Generate an Express configuration and save it for your coding agent:
+
+```typescript
+import { runExpressBuilderAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runExpressBuilderAgent({
+  input: 'Express API for e-commerce with products, orders, and user auth',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('express-config.json', result.output);
+
+// Cursor: "Scaffold the Express project from @express-config.json"
+// Claude Code: "Read express-config.json and create the routers, models, and middleware"
+```

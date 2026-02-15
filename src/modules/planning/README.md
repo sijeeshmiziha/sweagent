@@ -399,3 +399,69 @@ const model = createModel({ provider: 'openai', model: 'gpt-4o-mini' });
 const result = await validatePlanForCodingAgent(planMarkdown, model);
 // { valid: boolean, feedback?: string }
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Coding agents like Cursor, Claude Code, and Codex produce dramatically better code when they start from a structured plan instead of a vague prompt. Without a plan, the agent guesses your tech stack, skips data modeling, and produces inconsistent code. The Planning Agent generates an 11-section blueprint covering tech stack, data models, API routes, auth flow, implementation order, edge cases, and testing -- so your coding agent executes instead of improvising.
+
+## Integration with Coding Agents
+
+### Cursor
+
+Generate a plan and save it as a Cursor rule or reference file:
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+import { writeFileSync, mkdirSync } from 'fs';
+
+const { planning, plan } = await runPlanningWithResult({
+  input: 'E-commerce with users, products, cart, checkout, admin dashboard',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+
+if (planning) {
+  // Save as a Cursor rule so every agent session has the plan as context
+  mkdirSync('.cursor/rules', { recursive: true });
+  writeFileSync('.cursor/rules/plan.md', plan);
+
+  // Or save as a standalone file and reference it in Cursor chat
+  writeFileSync('plan.md', plan);
+  // Then in Cursor: "Implement the plan in @plan.md step by step"
+}
+```
+
+### Claude Code
+
+Save the plan as `CLAUDE.md` so Claude Code reads it automatically:
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const { plan } = await runPlanningWithResult({
+  input: 'SaaS dashboard with multi-tenancy and billing',
+  model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+});
+
+writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${plan}`);
+// Claude Code automatically reads CLAUDE.md for project context
+// Then: "Implement phase 1 of the plan"
+```
+
+### Codex
+
+Write the plan to a file and reference it in your Codex prompt:
+
+```typescript
+import { runPlanningWithResult, writePlanToFile } from 'sweagent';
+
+const { plan } = await runPlanningWithResult({
+  input: 'Task manager with teams and Kanban boards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+
+await writePlanToFile(plan, './plan.md');
+// Feed plan.md to Codex as context for implementation
+```

@@ -295,3 +295,29 @@ You do not need to call the execution-planner separately if you are using the pl
 // Used internally by planning:
 import { edgeCaseAnalyzerSubagent, testingStrategistSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Coding agents work best when they know the implementation order, edge cases to handle, and what to test. Without an execution plan, they jump between features randomly, skip error handling, and never test. The Execution Planner produces a phased implementation plan with edge case analysis and testing checklists -- so your coding agent works methodically through each phase.
+
+## Integration with Coding Agents
+
+Generate an execution plan and save it for your coding agent:
+
+```typescript
+import { runExecutionPlannerAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runExecutionPlannerAgent({
+  input: 'Create phased execution plan for a task manager with auth, CRUD, and dashboards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('execution-plan.json', result.output);
+
+// Cursor: "Follow @execution-plan.json and implement phase 1"
+// Claude Code: "Read execution-plan.json, implement phase 1, then run the tests listed"
+```

@@ -223,3 +223,29 @@ The planning module uses the apollo-builder when the backend-architect selects "
 ```typescript
 import { schemaGeneratorSubagent, resolverPlannerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Building an Apollo Federation subgraph from scratch requires precise type definitions, resolver patterns, datasource classes, and auth directive integration. Coding agents routinely get Federation v2 syntax wrong or produce non-modular schemas. The Apollo Builder generates a complete subgraph configuration with proper module patterns -- so your coding agent produces a well-structured GraphQL service.
+
+## Integration with Coding Agents
+
+Generate an Apollo subgraph configuration and save it for your coding agent:
+
+```typescript
+import { runApolloBuilderAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runApolloBuilderAgent({
+  input: 'Apollo subgraph for a task manager with users, projects, and tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('subgraph-config.json', result.output);
+
+// Cursor: "Scaffold the Apollo subgraph from @subgraph-config.json using the 4-file module pattern"
+// Claude Code: "Read subgraph-config.json and create the GraphQL types, resolvers, and datasources"
+```

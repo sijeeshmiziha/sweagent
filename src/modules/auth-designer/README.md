@@ -279,3 +279,29 @@ The planning module uses the auth-designer's `flow-designer` subagent during the
 // Used internally by planning:
 import { flowDesignerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Auth is the most commonly botched feature when coding agents work without a plan. They forget password reset flows, skip role checks, miss token refresh, or implement insecure patterns. The Auth Designer produces a complete auth specification with strategies, flows, middleware definitions, role-based access, and security policies -- so your coding agent implements auth correctly the first time.
+
+## Integration with Coding Agents
+
+Generate an auth design and save it for your coding agent:
+
+```typescript
+import { runAuthDesignerAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runAuthDesignerAgent({
+  input: 'JWT auth with email/password, Google OAuth, admin and member roles',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('auth-design.json', result.output);
+
+// Cursor: "Implement the auth system from @auth-design.json"
+// Claude Code: "Read auth-design.json and implement signup, login, and role-based middleware"
+```

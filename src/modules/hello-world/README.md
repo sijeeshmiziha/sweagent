@@ -84,3 +84,23 @@ import type { HelloWorldAgentConfig } from 'sweagent';
 ```bash
 npm run example:hello-world
 ```
+
+---
+
+## Using as a Module Template
+
+Use this module as a starting point when building your own domain agent. Each sweagent module follows the same structure:
+
+```
+src/modules/your-module/
+  index.ts          -- Module exports
+  agent.ts          -- Orchestrator agent
+  types.ts          -- Module-specific types
+  prompts/          -- System and stage prompts
+  tools/            -- Module-specific tools
+  subagents/        -- Specialized sub-agents
+  schemas/          -- Zod validation schemas
+  README.md         -- Module documentation
+```
+
+Copy the hello-world module, rename it, and replace the greeting tool with your domain-specific tools. See the [main README](../../README.md#domain-agent-modules) for how production modules are structured.

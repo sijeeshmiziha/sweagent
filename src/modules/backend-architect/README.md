@@ -171,3 +171,29 @@ You do not need to call the backend-architect separately if you are using the pl
 // Used internally by planning:
 import { servicePlannerSubagent, frameworkSelectorSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Without a backend architecture plan, coding agents produce flat, unstructured backends with no separation of concerns. The Backend Architect designs a proper service layer, middleware stack, folder structure, and framework selection -- so your coding agent scaffolds a maintainable backend from the start.
+
+## Integration with Coding Agents
+
+Generate a backend architecture and save it for your coding agent:
+
+```typescript
+import { runBackendArchitectAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runBackendArchitectAgent({
+  input: 'REST API backend with user auth, CRUD operations, and file uploads',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('backend-design.json', result.output);
+
+// Cursor: "Scaffold the backend project from @backend-design.json"
+// Claude Code: "Read backend-design.json and set up the project structure and service layer"
+```

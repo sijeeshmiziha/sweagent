@@ -176,3 +176,31 @@ You do not need to call the react-builder separately if you are using the planni
 // Used internally by planning:
 import { graphqlAnalyzerSubagent, createConfigValidatorSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Converting a GraphQL schema into a working React frontend requires understanding every type, query, mutation, and relationship -- and mapping them to pages, forms, tables, and API hooks. Coding agents miss fields, create wrong form inputs, and skip validation. The React Builder produces a complete app config with module/page/field definitions and API bindings that your coding agent can scaffold precisely.
+
+## Integration with Coding Agents
+
+Generate a React app configuration and save it for your coding agent:
+
+```typescript
+import { runReactBuilderAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runReactBuilderAgent({
+  input: `type User { id: ID!, name: String!, email: String! }
+type Query { users: [User!]!, user(id: ID!): User }
+type Mutation { createUser(name: String!, email: String!): User! }`,
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('react-config.json', result.output);
+
+// Cursor: "Scaffold the React app from @react-config.json with Vite, React Router, and Apollo Client"
+// Claude Code: "Read react-config.json and create the pages, forms, and API hooks"
+```

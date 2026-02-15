@@ -1,10 +1,10 @@
 <p align="center">
   <h1 align="center">sweagent</h1>
   <p align="center">
-    <strong>Enterprise-grade AI agents for every stage of software planning.</strong>
+    <strong>The planning layer that makes Cursor, Claude Code, and Codex 10x more effective.</strong>
   </p>
   <p align="center">
-    Domain-specialized agent pipelines — Planning, Requirements, DB Design, Frontend — each with dedicated orchestrators, sub-agents, and structured outputs. From discovery to implementation-ready blueprints, in TypeScript.
+    14 domain-specialized AI agent pipelines — Planning, Requirements, Data Modeling, API Design, Auth, Backend, Frontend, and more — each with dedicated orchestrators, sub-agents, and structured outputs. Generate implementation-ready blueprints, then hand them to your coding agent.
   </p>
 </p>
 
@@ -17,9 +17,9 @@
 
 <p align="center">
   <a href="#what-is-sweagent">What is sweagent?</a> •
-  <a href="#why-sweagent">Why sweagent?</a> •
+  <a href="#use-with-cursor-claude-code-and-codex">Use with Coding Agents</a> •
   <a href="#domain-agents">Domain Agents</a> •
-  <a href="#planning-pipeline">Planning Pipeline</a> •
+  <a href="#full-pipeline">Full Pipeline</a> •
   <a href="#installation">Installation</a> •
   <a href="#getting-started">Getting Started</a> •
   <a href="#architecture">Architecture</a> •
@@ -34,8 +34,10 @@
 ## Table of Contents
 
 - [What is sweagent?](#what-is-sweagent)
+- [Use with Cursor, Claude Code, and Codex](#use-with-cursor-claude-code-and-codex)
 - [Why sweagent?](#why-sweagent)
 - [Domain Agents](#domain-agents)
+- [Full Pipeline](#full-pipeline)
 - [Planning Pipeline](#planning-pipeline)
 - [Features](#features)
 - [Installation](#installation)
@@ -56,14 +58,24 @@
 
 AI coding agents -- Claude Code, Codex, Cursor -- are powerful executors, but they fail at planning. Hand one a vague requirement and it guesses a tech stack, skips data modeling, forgets auth, and produces half-finished code. Enterprise teams need the same rigor from AI that they expect from senior engineers: structured discovery, explicit requirements, deliberate design, and traceable decisions.
 
-**sweagent** is a library of **domain-specialized AI agent pipelines** that handle every stage of software planning at professional quality. Each domain -- planning, requirements, database design, frontend configuration -- gets its own **orchestrator agent** with dedicated **sub-agents**, **tools**, and **multi-stage pipelines** that produce structured, reviewable outputs.
+**sweagent** is a library of **14 domain-specialized AI agent pipelines** that handle every stage of software planning at professional quality. Each domain -- planning, requirements, data modeling, API design, auth, backend, frontend -- gets its own **orchestrator agent** with dedicated **sub-agents**, **tools**, and **multi-stage pipelines** that produce structured, reviewable outputs.
 
-| Domain           | Orchestrator Agent            | Sub-Agents                             | Output                                            |
-| ---------------- | ----------------------------- | -------------------------------------- | ------------------------------------------------- |
-| **Planning**     | `runPlanningAgent`            | --                                     | Implementation-ready markdown plan                |
-| **Requirements** | `runRequirementGathererAgent` | --                                     | Structured JSON (actors, flows, stories, modules) |
-| **DB Design**    | `runDbDesignerAgent`          | `entity-analyzer`, `schema-refiner`    | MongoDB schemas with relationships                |
-| **Frontend**     | `runReactBuilderAgent`        | `graphql-analyzer`, `config-validator` | React app config from GraphQL                     |
+| Stage               | Agent                         | Sub-Agents                                                 | Output                                            |
+| ------------------- | ----------------------------- | ---------------------------------------------------------- | ------------------------------------------------- |
+| **Planning**        | `runPlanningAgent`            | --                                                         | Implementation-ready markdown plan (11 sections)  |
+| **Requirements**    | `runRequirementGathererAgent` | --                                                         | Structured JSON (actors, flows, stories, modules) |
+| **Data Modeling**   | `runDataModelerAgent`         | `entity-analyzer`, `relationship-mapper`, `schema-refiner` | MongoDB/PostgreSQL schemas                        |
+| **DB Design**       | `runDbDesignerAgent`          | `entity-analyzer`, `schema-refiner`                        | MongoDB schemas with RBAC permissions             |
+| **API Design**      | `runApiDesignerAgent`         | `endpoint-analyzer`, `contract-designer`                   | REST and/or GraphQL API design                    |
+| **Auth Design**     | `runAuthDesignerAgent`        | `security-analyzer`, `flow-designer`                       | Auth strategy, flows, middleware, RBAC            |
+| **Backend Arch.**   | `runBackendArchitectAgent`    | `framework-selector`, `service-planner`                    | Backend architecture (Express/Apollo)             |
+| **Express Builder** | `runExpressBuilderAgent`      | `route-generator`, `middleware-configurator`               | Express.js REST API config                        |
+| **Apollo Builder**  | `runApolloBuilderAgent`       | `schema-generator`, `resolver-planner`                     | Apollo GraphQL subgraph config                    |
+| **Frontend Arch.**  | `runFrontendArchitectAgent`   | `page-planner`, `component-analyzer`                       | Frontend architecture (React/Next.js)             |
+| **React Builder**   | `runReactBuilderAgent`        | `graphql-analyzer`, `config-validator`                     | React + Vite app config from GraphQL              |
+| **Next.js Builder** | `runNextjsBuilderAgent`       | `route-planner`, `api-route-generator`                     | Next.js App Router config                         |
+| **Execution Plan**  | `runExecutionPlannerAgent`    | `edge-case-analyzer`, `testing-strategist`                 | Phased implementation plan                        |
+| **Hello World**     | `runHelloWorldAgent`          | --                                                         | Template module for custom agents                 |
 
 Each pipeline walks through structured stages -- discovery, analysis, design, synthesis -- not a single LLM call. The result is a professional-grade artifact that a coding agent can execute step-by-step, or that a human architect can review and approve.
 
@@ -83,6 +95,94 @@ if (planning) {
 ```
 
 TypeScript-first, built on the Vercel AI SDK, ships with all provider SDKs (OpenAI, Anthropic, Google). Set your API keys and go.
+
+---
+
+## Use with Cursor, Claude Code, and Codex
+
+Coding agents are powerful executors -- but they build faster and better when they start from a structured plan instead of a vague prompt. sweagent generates the blueprints; your coding agent implements them.
+
+```mermaid
+flowchart LR
+  Requirement["Your idea"] --> sweagent["sweagent"]
+  sweagent --> Plan["plan.md / JSON spec"]
+  Plan --> Cursor["Cursor"]
+  Plan --> ClaudeCode["Claude Code"]
+  Plan --> Codex["Codex"]
+  Cursor --> Code["Production code"]
+  ClaudeCode --> Code
+  Codex --> Code
+```
+
+### With Cursor
+
+Generate a plan, save it to your project, and reference it in Cursor chat or `.cursor/rules/`:
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const { planning, plan } = await runPlanningWithResult({
+  input: 'E-commerce with users, products, cart, checkout, admin dashboard',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+
+writeFileSync('plan.md', plan);
+// Open plan.md in Cursor and say: "Implement this plan step by step"
+// Or copy plan.md to .cursor/rules/ so every agent session uses it as context
+```
+
+### With Claude Code
+
+Generate a plan and save it as `CLAUDE.md` or a reference file. Claude Code automatically reads `CLAUDE.md` for project context:
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const { plan } = await runPlanningWithResult({
+  input: 'SaaS dashboard with multi-tenancy, billing, and analytics',
+  model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+});
+
+// Option 1: Save as CLAUDE.md for automatic context
+writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${plan}`);
+
+// Option 2: Save as plan.md and reference it
+writeFileSync('plan.md', plan);
+// Then tell Claude Code: "Read plan.md and implement phase 1"
+```
+
+### With Codex
+
+Codex works best with structured, machine-readable specs. Use the Requirement Gatherer or Data Modeler for JSON output:
+
+```typescript
+import { runRequirementGathererAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runRequirementGathererAgent({
+  input: 'Task manager with teams, Kanban boards, and time tracking',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+// Structured JSON with actors, flows, stories, modules, DB schema, API design
+writeFileSync('requirements.json', result.output);
+// Feed requirements.json to Codex as context for implementation
+```
+
+### Why this works
+
+Without sweagent, a coding agent receives "build a task manager" and immediately starts guessing. With sweagent, it receives:
+
+- **11-section markdown plan** with tech stack, data models, API routes, auth flow, implementation order, edge cases, and testing checklist
+- **Structured JSON requirements** with actors, user flows, stories, and module breakdowns
+- **Database schemas** with exact field types, relationships, indexes, and validation rules
+- **API contracts** with endpoints, methods, request/response shapes, and auth requirements
+- **Frontend architecture** with pages, components, routing, and state management
+
+The coding agent stops guessing and starts executing a professional-grade blueprint.
 
 ---
 
@@ -116,73 +216,50 @@ Long-running agents fail when they lose context. sweagent encodes patterns for s
 
 ## Domain Agents
 
-sweagent ships with four production domain agents and a template module. Each is a complete pipeline with its own orchestrator, tools, sub-agents, and output format.
+sweagent ships with 14 domain agent modules organized across the full software planning pipeline. Each is a complete pipeline with its own orchestrator, tools, sub-agents, and output format.
 
 ```mermaid
-graph TB
-  subgraph DomainAgents[Domain Agent Modules]
-    subgraph PlanningDomain[Planning Agent]
-      PA_Orch["Orchestrator"]
-      PA_Disc["Discovery Stage"]
-      PA_Req["Requirements Stage"]
-      PA_Des["Design Stage"]
-      PA_Syn["Synthesis Stage"]
-      PA_Val["LLM Validator"]
-      PA_Orch --> PA_Disc --> PA_Req --> PA_Des --> PA_Syn --> PA_Val
-    end
-
-    subgraph ReqDomain[Requirement Gatherer Agent]
-      RG_Orch["Orchestrator"]
-      RG_Disc["Discovery"]
-      RG_Req["Requirements"]
-      RG_Des["Design"]
-      RG_Syn["Synthesis"]
-      RG_Orch --> RG_Disc --> RG_Req --> RG_Des --> RG_Syn
-    end
-
-    subgraph DbDomain[DB Designer Agent]
-      DB_Orch["Orchestrator"]
-      DB_EA["entity-analyzer"]
-      DB_SR["schema-refiner"]
-      DB_T1["design_database"]
-      DB_T2["validate_schema"]
-      DB_Orch --> DB_EA
-      DB_Orch --> DB_SR
-      DB_Orch --> DB_T1
-      DB_Orch --> DB_T2
-    end
-
-    subgraph ReactDomain[React Builder Agent]
-      RB_Orch["Orchestrator"]
-      RB_GA["graphql-analyzer"]
-      RB_CV["config-validator"]
-      RB_T1["generate_frontend"]
-      RB_T2["validate_frontend_config"]
-      RB_Orch --> RB_GA
-      RB_Orch --> RB_CV
-      RB_Orch --> RB_T1
-      RB_Orch --> RB_T2
-    end
+flowchart LR
+  subgraph discovery [Discovery and Planning]
+    Planning["Planning"]
+    ReqGatherer["Requirement Gatherer"]
+    ExecPlanner["Execution Planner"]
   end
 
-  subgraph SharedFramework[Shared Framework Layer]
-    Models["Model Abstraction"]
-    ToolFW["Tool Framework"]
-    AgentLoop["Agent Loop"]
-    SubAgentFW["Sub-Agent Orchestration"]
+  subgraph data [Data Layer]
+    DataModeler["Data Modeler"]
+    DbDesigner["DB Designer"]
   end
 
-  subgraph Providers[AI Providers]
-    OpenAI["OpenAI"]
-    Anthropic["Anthropic"]
-    Google["Google"]
+  subgraph api [API Layer]
+    ApiDesigner["API Designer"]
+    AuthDesigner["Auth Designer"]
   end
 
-  PlanningDomain --> SharedFramework
-  ReqDomain --> SharedFramework
-  DbDomain --> SharedFramework
-  ReactDomain --> SharedFramework
-  SharedFramework --> Providers
+  subgraph backend [Backend]
+    BackendArch["Backend Architect"]
+    ExpressBuilder["Express Builder"]
+    ApolloBuilder["Apollo Builder"]
+  end
+
+  subgraph frontend [Frontend]
+    FrontendArch["Frontend Architect"]
+    ReactBuilder["React Builder"]
+    NextjsBuilder["Next.js Builder"]
+  end
+
+  ReqGatherer --> DataModeler
+  ReqGatherer --> DbDesigner
+  DataModeler --> ApiDesigner
+  DbDesigner --> ApiDesigner
+  ApiDesigner --> AuthDesigner
+  AuthDesigner --> BackendArch
+  BackendArch --> ExpressBuilder
+  BackendArch --> ApolloBuilder
+  ApiDesigner --> FrontendArch
+  FrontendArch --> ReactBuilder
+  FrontendArch --> NextjsBuilder
+  Planning --> ExecPlanner
 ```
 
 ### Planning Agent
@@ -258,6 +335,177 @@ const result = await runReactBuilderAgent({
 ```
 
 **Sub-agents:** `graphql-analyzer` (schema parsing), `config-validator` (output verification) | **Tools:** `generate_frontend`, `generate_feature_breakdown`, `validate_frontend_config` | **Output:** React app config JSON
+
+---
+
+### Data Modeler Agent
+
+Designs data models for MongoDB or PostgreSQL with entities, fields, indexes, and relationships. Uses three sub-agents for entity analysis, relationship mapping, and schema refinement.
+
+```typescript
+import { runDataModelerAgent } from 'sweagent';
+
+const result = await runDataModelerAgent({
+  input: 'SaaS platform with organizations, users, projects, and billing',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: DataModelDesign JSON with entities, fields, indexes, relationships
+```
+
+**Sub-agents:** `entity-analyzer`, `relationship-mapper`, `schema-refiner` | **Tools:** `design_schema`, `design_schema_pro`, `refine_schema`, `validate_data_model` | **Output:** Data model JSON (MongoDB or PostgreSQL)
+
+---
+
+### API Designer Agent
+
+Designs REST and/or GraphQL APIs from data models, producing endpoint definitions with request/response contracts, auth requirements, and operation details.
+
+```typescript
+import { runApiDesignerAgent } from 'sweagent';
+
+const result = await runApiDesignerAgent({
+  input: 'Design REST API for a task manager with users, projects, and tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: ApiDesign JSON with REST endpoints and/or GraphQL operations
+```
+
+**Sub-agents:** `endpoint-analyzer`, `contract-designer` | **Tools:** `design_api`, `design_api_pro`, `validate_api` | **Output:** API design JSON (REST/GraphQL)
+
+---
+
+### Auth Designer Agent
+
+Designs authentication and authorization systems with strategies, flows, middleware, roles, and security policies.
+
+```typescript
+import { runAuthDesignerAgent } from 'sweagent';
+
+const result = await runAuthDesignerAgent({
+  input: 'JWT auth with email/password, Google OAuth, role-based access (admin, member)',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: AuthDesign JSON with strategy, flows, middleware, roles, policies
+```
+
+**Sub-agents:** `security-analyzer`, `flow-designer` | **Tools:** `design_auth`, `validate_auth` | **Output:** Auth design JSON
+
+---
+
+### Frontend Architect Agent
+
+Plans frontend architecture including pages, components, routing, and state management. Routes to React Builder or Next.js Builder based on framework selection.
+
+```typescript
+import { runFrontendArchitectAgent } from 'sweagent';
+
+const result = await runFrontendArchitectAgent({
+  input: 'Dashboard app with analytics, settings, and user management pages',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: FrontendDesign JSON with pages, components, state management, routing
+```
+
+**Sub-agents:** `page-planner`, `component-analyzer`, `framework-selector` | **Output:** Frontend design JSON
+
+---
+
+### Backend Architect Agent
+
+Plans backend architecture including framework selection, services, middleware, routes, and folder structure. Routes to Express Builder or Apollo Builder based on framework choice.
+
+```typescript
+import { runBackendArchitectAgent } from 'sweagent';
+
+const result = await runBackendArchitectAgent({
+  input: 'REST API backend with user auth, CRUD operations, and file uploads',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: BackendDesign JSON with framework, services, middleware, routes
+```
+
+**Sub-agents:** `framework-selector`, `service-planner` | **Tools:** `design_backend`, `validate_backend` | **Output:** Backend design JSON
+
+---
+
+### Express Builder Agent
+
+Generates Express.js REST API configuration with routers, models, middleware, and environment variables.
+
+```typescript
+import { runExpressBuilderAgent } from 'sweagent';
+
+const result = await runExpressBuilderAgent({
+  input: 'Express API for e-commerce with products, orders, and user auth',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: ExpressConfig JSON with routers, models, middleware, env vars
+```
+
+**Sub-agents:** `route-generator`, `middleware-configurator` | **Tools:** `generate_express`, `scaffold_express`, `validate_express` | **Output:** Express config JSON
+
+---
+
+### Apollo Builder Agent
+
+Generates Apollo GraphQL subgraph configuration with modules, types, resolvers, datasources, and Federation v2 support.
+
+```typescript
+import { runApolloBuilderAgent } from 'sweagent';
+
+const result = await runApolloBuilderAgent({
+  input: 'Apollo subgraph for a task manager with users, projects, and tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: SubgraphConfig JSON with modules, types, operations, datasources
+```
+
+**Sub-agents:** `schema-generator`, `resolver-planner` | **Tools:** `generate_subgraph`, `scaffold_subgraph`, `validate_subgraph` | **Output:** Apollo subgraph config JSON
+
+---
+
+### Next.js Builder Agent
+
+Generates Next.js App Router configuration with pages, layouts, API routes, server actions, and middleware.
+
+```typescript
+import { runNextjsBuilderAgent } from 'sweagent';
+
+const result = await runNextjsBuilderAgent({
+  input: 'Next.js app for project management with teams, tasks, and dashboards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: NextjsConfig JSON with pages, layouts, API routes, server actions
+```
+
+**Sub-agents:** `route-planner`, `api-route-generator` | **Tools:** `generate_nextjs`, `validate_nextjs` | **Output:** Next.js config JSON
+
+---
+
+### Execution Planner Agent
+
+Creates phased implementation execution plans from plan sections, with edge case analysis and testing checklists.
+
+```typescript
+import { runExecutionPlannerAgent } from 'sweagent';
+
+const result = await runExecutionPlannerAgent({
+  input: 'Create execution plan for the task manager project',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: ExecutionPlan JSON with phases, edge cases, testing checklist
+```
+
+**Sub-agents:** `edge-case-analyzer`, `testing-strategist` | **Tools:** `create_execution_plan`, `validate_execution_plan` | **Output:** Execution plan JSON
 
 ---
 
@@ -383,21 +631,97 @@ The LLM validator (`validatePlanForCodingAgent`) checks that the plan includes:
 
 ---
 
+## Full Pipeline
+
+Chain multiple agents together to go from a vague idea to implementation-ready specs for every layer of your stack. Each agent's output feeds the next.
+
+```typescript
+import {
+  runRequirementGathererAgent,
+  runDataModelerAgent,
+  runApiDesignerAgent,
+  runAuthDesignerAgent,
+  runBackendArchitectAgent,
+  runFrontendArchitectAgent,
+  runExecutionPlannerAgent,
+} from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const model = { provider: 'openai', model: 'gpt-4o-mini' } as const;
+
+// Step 1: Gather structured requirements
+const requirements = await runRequirementGathererAgent({
+  input: 'Project management SaaS with teams, Kanban boards, time tracking, and billing',
+  model,
+  maxIterations: 15,
+});
+
+// Step 2: Design the data model from requirements
+const dataModel = await runDataModelerAgent({
+  input: `Design a data model based on these requirements:\n${requirements.output}`,
+  model,
+  maxIterations: 15,
+});
+
+// Step 3: Design the API from the data model
+const apiDesign = await runApiDesignerAgent({
+  input: `Design REST API for this data model:\n${dataModel.output}`,
+  model,
+  maxIterations: 15,
+});
+
+// Step 4: Design auth from the requirements and API
+const authDesign = await runAuthDesignerAgent({
+  input: `Design auth for this project:\nRequirements: ${requirements.output}\nAPI: ${apiDesign.output}`,
+  model,
+  maxIterations: 15,
+});
+
+// Step 5: Plan backend architecture
+const backendDesign = await runBackendArchitectAgent({
+  input: `Design backend:\nData model: ${dataModel.output}\nAPI: ${apiDesign.output}\nAuth: ${authDesign.output}`,
+  model,
+  maxIterations: 15,
+});
+
+// Step 6: Plan frontend architecture
+const frontendDesign = await runFrontendArchitectAgent({
+  input: `Design frontend:\nAPI: ${apiDesign.output}\nRequirements: ${requirements.output}`,
+  model,
+  maxIterations: 15,
+});
+
+// Save all specs for your coding agent
+writeFileSync('specs/requirements.json', requirements.output);
+writeFileSync('specs/data-model.json', dataModel.output);
+writeFileSync('specs/api-design.json', apiDesign.output);
+writeFileSync('specs/auth-design.json', authDesign.output);
+writeFileSync('specs/backend-design.json', backendDesign.output);
+writeFileSync('specs/frontend-design.json', frontendDesign.output);
+
+// Now hand the specs/ directory to Cursor, Claude Code, or Codex
+// "Implement the backend using specs/backend-design.json and specs/data-model.json"
+```
+
+You can also run individual agents standalone -- each works independently with natural-language input. The pipeline approach gives you maximum control over each design decision.
+
+---
+
 ## Features
 
-| Feature                     | Description                                                                                                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **4 Domain Agent Modules**  | Planning, Requirement Gatherer, DB Designer, React Builder -- each a self-contained pipeline with its own orchestrator, tools, sub-agents, and output format.                        |
-| **Multi-Stage Pipelines**   | Every domain agent progresses through structured stages (discovery, requirements, design, synthesis) with dedicated LLM calls at each step. No single-shot prompts.                  |
-| **Sub-Agent Orchestration** | Complex domains delegate to specialized sub-agents (`entity-analyzer`, `schema-refiner`, `graphql-analyzer`, `config-validator`) that run in isolation and return condensed results. |
-| **Plan Validation**         | LLM-based judge validates that planning output meets all criteria for a coding agent to start implementing.                                                                          |
-| **Structured Outputs**      | Requirements as typed JSON (actors, flows, stories, modules). DB schemas with field-level detail. Frontend configs with pages, hooks, and branding. Plans with 11 sections.          |
-| **Multi-Provider Models**   | Unified API for OpenAI, Anthropic, and Google. One `createModel()` call, zero provider lock-in.                                                                                      |
-| **Type-Safe Tools**         | Define tools with Zod schemas; full type inference and validation before execution. Minimal, workflow-oriented tool sets.                                                            |
-| **Agent Framework**         | Iterative agent loop with tool calling, step callbacks, and configurable max iterations.                                                                                             |
-| **MCP Protocol**            | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation.                                                                                |
-| **Vision**                  | Image inputs via `model.generateVision()` for vision-capable models.                                                                                                                 |
-| **Zero Extra Deps**         | All provider SDKs (OpenAI, Anthropic, Google) included. Set API keys and run.                                                                                                        |
+| Feature                     | Description                                                                                                                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **14 Domain Agent Modules** | Planning, Requirement Gatherer, Data Modeler, DB Designer, API Designer, Auth Designer, Backend Architect, Express Builder, Apollo Builder, Frontend Architect, React Builder, Next.js Builder, Execution Planner, and Hello World template -- each a self-contained pipeline. |
+| **Multi-Stage Pipelines**   | Every domain agent progresses through structured stages (discovery, requirements, design, synthesis) with dedicated LLM calls at each step. No single-shot prompts.                                                                                                            |
+| **Sub-Agent Orchestration** | Complex domains delegate to specialized sub-agents (`entity-analyzer`, `schema-refiner`, `graphql-analyzer`, `config-validator`) that run in isolation and return condensed results.                                                                                           |
+| **Plan Validation**         | LLM-based judge validates that planning output meets all criteria for a coding agent to start implementing.                                                                                                                                                                    |
+| **Structured Outputs**      | Requirements as typed JSON (actors, flows, stories, modules). DB schemas with field-level detail. Frontend configs with pages, hooks, and branding. Plans with 11 sections.                                                                                                    |
+| **Multi-Provider Models**   | Unified API for OpenAI, Anthropic, and Google. One `createModel()` call, zero provider lock-in.                                                                                                                                                                                |
+| **Type-Safe Tools**         | Define tools with Zod schemas; full type inference and validation before execution. Minimal, workflow-oriented tool sets.                                                                                                                                                      |
+| **Agent Framework**         | Iterative agent loop with tool calling, step callbacks, and configurable max iterations.                                                                                                                                                                                       |
+| **MCP Protocol**            | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation.                                                                                                                                                                          |
+| **Vision**                  | Image inputs via `model.generateVision()` for vision-capable models.                                                                                                                                                                                                           |
+| **Zero Extra Deps**         | All provider SDKs (OpenAI, Anthropic, Google) included. Set API keys and run.                                                                                                                                                                                                  |
 
 ---
 
@@ -589,21 +913,23 @@ const result = await client.callTool('tool_name', { arg: 'value' });
 ```mermaid
 graph TB
   subgraph Client[Client Application]
-    App["Your App / Coding Agent"]
+    App["Your App / Cursor / Claude Code / Codex"]
   end
 
   subgraph DomainAgents[Domain Agent Modules]
-    Planning["Planning Agent"]
-    ReqGatherer["Requirement Gatherer Agent"]
-    DbDesigner["DB Designer Agent"]
-    ReactBuilder["React Builder Agent"]
-  end
-
-  subgraph SubAgents[Specialized Sub-Agents]
-    EA["entity-analyzer"]
-    SR["schema-refiner"]
-    GA["graphql-analyzer"]
-    CV["config-validator"]
+    Planning["Planning"]
+    ReqGatherer["Requirement Gatherer"]
+    DataModeler["Data Modeler"]
+    DbDesigner["DB Designer"]
+    ApiDesigner["API Designer"]
+    AuthDesigner["Auth Designer"]
+    BackendArch["Backend Architect"]
+    ExpressBuilder["Express Builder"]
+    ApolloBuilder["Apollo Builder"]
+    FrontendArch["Frontend Architect"]
+    ReactBuilder["React Builder"]
+    NextjsBuilder["Next.js Builder"]
+    ExecPlanner["Execution Planner"]
   end
 
   subgraph Framework[Shared Framework]
@@ -621,18 +947,7 @@ graph TB
   end
 
   App --> DomainAgents
-  Planning --> Framework
-  ReqGatherer --> Framework
-  DbDesigner --> EA
-  DbDesigner --> SR
-  DbDesigner --> Framework
-  ReactBuilder --> GA
-  ReactBuilder --> CV
-  ReactBuilder --> Framework
-  EA --> Framework
-  SR --> Framework
-  GA --> Framework
-  CV --> Framework
+  DomainAgents --> Framework
   Framework --> Providers
 ```
 
@@ -1054,6 +1369,215 @@ const result = await runReactBuilderAgent({
 
 ---
 
+### Data Modeler
+
+Designs data models for MongoDB or PostgreSQL with entities, fields, indexes, and relationships. Three sub-agents handle entity analysis, relationship mapping, and schema refinement.
+
+| Attribute         | Detail                                                                       |
+| ----------------- | ---------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                 |
+| **Sub-Agents**    | `entity-analyzer`, `relationship-mapper`, `schema-refiner`                   |
+| **Tools**         | `design_schema`, `design_schema_pro`, `refine_schema`, `validate_data_model` |
+| **Output Format** | Data model JSON (entities, fields, indexes, relationships)                   |
+| **Databases**     | MongoDB, PostgreSQL                                                          |
+
+```typescript
+import { runDataModelerAgent } from 'sweagent';
+
+const result = await runDataModelerAgent({
+  input: 'SaaS platform with organizations, users, projects, and billing',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### API Designer
+
+Designs REST and/or GraphQL APIs from data models. Produces endpoint definitions with request/response contracts and auth requirements.
+
+| Attribute         | Detail                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                                            |
+| **Sub-Agents**    | `endpoint-analyzer` (derives endpoints from data model), `contract-designer` (designs request/response) |
+| **Tools**         | `design_api`, `design_api_pro`, `validate_api`                                                          |
+| **Output Format** | API design JSON (REST endpoints and/or GraphQL operations)                                              |
+
+```typescript
+import { runApiDesignerAgent } from 'sweagent';
+
+const result = await runApiDesignerAgent({
+  input: 'Design REST API for task manager with users, projects, tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Auth Designer
+
+Designs authentication and authorization systems with strategies, flows, middleware, roles, and security policies.
+
+| Attribute         | Detail                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| **Pattern**       | Orchestrator with sub-agents                                                               |
+| **Sub-Agents**    | `security-analyzer` (analyzes security requirements), `flow-designer` (designs auth flows) |
+| **Tools**         | `design_auth`, `validate_auth`                                                             |
+| **Output Format** | Auth design JSON (strategy, flows, middleware, roles, policies)                            |
+
+```typescript
+import { runAuthDesignerAgent } from 'sweagent';
+
+const result = await runAuthDesignerAgent({
+  input: 'JWT auth with email/password, Google OAuth, admin and member roles',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Frontend Architect
+
+Plans frontend architecture including pages, components, routing, and state management. Routes to React Builder or Next.js Builder based on framework selection.
+
+| Attribute         | Detail                                                              |
+| ----------------- | ------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                        |
+| **Sub-Agents**    | `page-planner`, `component-analyzer`, `framework-selector`          |
+| **Output Format** | Frontend design JSON (pages, components, state management, routing) |
+| **Frameworks**    | React + Vite, Next.js                                               |
+
+```typescript
+import { runFrontendArchitectAgent } from 'sweagent';
+
+const result = await runFrontendArchitectAgent({
+  input: 'Dashboard with analytics, settings, and user management',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Backend Architect
+
+Plans backend architecture including framework selection, services, middleware, routes, and folder structure. Routes to Express Builder or Apollo Builder.
+
+| Attribute         | Detail                                                                          |
+| ----------------- | ------------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                    |
+| **Sub-Agents**    | `framework-selector`, `service-planner`                                         |
+| **Tools**         | `design_backend`, `validate_backend`                                            |
+| **Output Format** | Backend design JSON (framework, services, middleware, routes, folder structure) |
+| **Frameworks**    | Express, Apollo, or both                                                        |
+
+```typescript
+import { runBackendArchitectAgent } from 'sweagent';
+
+const result = await runBackendArchitectAgent({
+  input: 'REST API with user auth, CRUD operations, and file uploads',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Express Builder
+
+Generates Express.js REST API configuration with routers, models, middleware, and environment variables.
+
+| Attribute         | Detail                                                      |
+| ----------------- | ----------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                |
+| **Sub-Agents**    | `route-generator`, `middleware-configurator`                |
+| **Tools**         | `generate_express`, `scaffold_express`, `validate_express`  |
+| **Output Format** | Express config JSON (routers, models, middleware, env vars) |
+
+```typescript
+import { runExpressBuilderAgent } from 'sweagent';
+
+const result = await runExpressBuilderAgent({
+  input: 'Express API for e-commerce with products, orders, and user auth',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Apollo Builder
+
+Generates Apollo GraphQL subgraph configuration with modules, types, resolvers, datasources, and Federation v2 support.
+
+| Attribute         | Detail                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                          |
+| **Sub-Agents**    | `schema-generator`, `resolver-planner`                                |
+| **Tools**         | `generate_subgraph`, `scaffold_subgraph`, `validate_subgraph`         |
+| **Output Format** | Apollo subgraph config JSON (modules, types, operations, datasources) |
+
+```typescript
+import { runApolloBuilderAgent } from 'sweagent';
+
+const result = await runApolloBuilderAgent({
+  input: 'Apollo subgraph for task manager with users, projects, tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Next.js Builder
+
+Generates Next.js App Router configuration with pages, layouts, API routes, server actions, and middleware.
+
+| Attribute         | Detail                                                                       |
+| ----------------- | ---------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                 |
+| **Sub-Agents**    | `route-planner`, `api-route-generator`                                       |
+| **Tools**         | `generate_nextjs`, `validate_nextjs`                                         |
+| **Output Format** | Next.js config JSON (pages, layouts, API routes, server actions, middleware) |
+
+```typescript
+import { runNextjsBuilderAgent } from 'sweagent';
+
+const result = await runNextjsBuilderAgent({
+  input: 'Next.js app for project management with teams and dashboards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
+### Execution Planner
+
+Creates phased implementation execution plans with edge case analysis and testing checklists.
+
+| Attribute         | Detail                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                            |
+| **Sub-Agents**    | `edge-case-analyzer`, `testing-strategist`                                              |
+| **Tools**         | `create_execution_plan`, `validate_execution_plan`                                      |
+| **Output Format** | Execution plan JSON (phases, edge cases, testing checklist, security/performance notes) |
+
+```typescript
+import { runExecutionPlannerAgent } from 'sweagent';
+
+const result = await runExecutionPlannerAgent({
+  input: 'Create execution plan for the task manager project',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+```
+
+---
+
 ### Hello World (Template)
 
 Minimal example module with a single greeting tool. Use as a starting point when building your own domain agent module.
@@ -1089,8 +1613,17 @@ npm run example -- examples/react-builder/01-react-builder-agent.ts
 | ------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | **Planning**             | 01 Planning Agent                                                                    | Implementation-ready markdown plan through 4-stage pipeline              |
 | **Requirement Gatherer** | 01 Requirement Gatherer Agent                                                        | Structured JSON requirements (actors, flows, stories, modules)           |
+| **Data Modeler**         | 01 Data Modeler Agent                                                                | MongoDB/PostgreSQL data model with entities, fields, indexes             |
 | **DB Designer**          | 01 DB Designer Agent                                                                 | MongoDB schemas via `entity-analyzer` and `schema-refiner` sub-agents    |
+| **API Designer**         | 01 API Designer Agent                                                                | REST/GraphQL API design with endpoints and contracts                     |
+| **Auth Designer**        | 01 Auth Designer Agent                                                               | Auth strategy, flows, middleware, roles, and policies                    |
+| **Backend Architect**    | 01 Backend Architect Agent                                                           | Backend architecture with framework selection and services               |
+| **Express Builder**      | 01 Express Builder Agent                                                             | Express.js config with routers, models, and middleware                   |
+| **Apollo Builder**       | 01 Apollo Builder Agent                                                              | Apollo GraphQL subgraph config with types and resolvers                  |
+| **Frontend Architect**   | 01 Frontend Architect Agent                                                          | Frontend architecture with pages, components, and routing                |
 | **React Builder**        | 01 React Builder Agent                                                               | Frontend config via `graphql-analyzer` and `config-validator` sub-agents |
+| **Next.js Builder**      | 01 Next.js Builder Agent                                                             | Next.js App Router config with pages, layouts, and API routes            |
+| **Execution Planner**    | 01 Execution Planner Agent                                                           | Phased implementation plan with edge cases and testing checklist         |
 | **Core Framework**       | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent, 05 Subagents | Models, tools, agent loop, sub-agent delegation                          |
 | **Hello World**          | 01 Hello World                                                                       | Minimal agent with greeting tool (module template)                       |
 
@@ -1131,7 +1664,7 @@ npm run example -- examples/react-builder/01-react-builder-agent.ts
 All work well. Choose by existing infrastructure and pricing. The API is the same regardless of provider.
 
 **Can I use this with Claude Code / Codex / Cursor?**
-Yes. sweagent is designed as the structured layer underneath AI coding agents. Use `runPlanningWithResult` to generate a plan, then feed the plan markdown into your coding agent as context. The `{ planning: boolean, plan: string }` output tells you whether the plan is implementation-ready.
+Yes -- this is the primary use case. See [Use with Cursor, Claude Code, and Codex](#use-with-cursor-claude-code-and-codex) for detailed integration guides with code examples. In short: generate a plan or structured spec with sweagent, save it to a file, and reference it in your coding agent. For Cursor, save to `.cursor/rules/` or paste into chat. For Claude Code, save as `CLAUDE.md` or reference with `@plan.md`. For Codex, feed the structured JSON as context.
 
 **How do I handle rate limits?**
 sweagent has no built-in rate limiting. Use a retry library (e.g. `p-retry`) around `model.invoke` or `runAgent` if needed.

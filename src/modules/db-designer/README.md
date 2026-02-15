@@ -266,3 +266,29 @@ You do not need to call the db-designer separately if you are using the planning
 // Used internally by planning:
 import { entityAnalyzerSubagent, createSchemaRefinerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Coding agents consistently produce incomplete MongoDB schemas -- missing indexes, wrong field types, no RBAC permissions, and broken relationships. The DB Designer uses a 5-phase analysis framework with entity-analyzer and schema-refiner sub-agents to produce production-ready schemas. Your coding agent receives exact Mongoose model definitions with field-level detail.
+
+## Integration with Coding Agents
+
+Generate a database schema and save it for your coding agent:
+
+```typescript
+import { runDbDesignerAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runDbDesignerAgent({
+  input: 'E-commerce: users, orders, products. Admins manage products and orders.',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('db-schema.json', result.output);
+
+// Cursor: "Create Mongoose models from the schema in @db-schema.json"
+// Claude Code: "Read db-schema.json and implement the MongoDB models with validation"
+```

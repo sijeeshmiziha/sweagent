@@ -247,3 +247,29 @@ You do not need to call the api-designer separately if you are using the plannin
 // Used internally by planning:
 import { endpointAnalyzerSubagent, contractDesignerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+When a coding agent designs your API on the fly, you get inconsistent endpoint naming, missing validation, and incomplete contracts. The API Designer produces a complete API specification with endpoints, methods, request/response shapes, and auth requirements -- so your coding agent implements consistent, well-documented routes.
+
+## Integration with Coding Agents
+
+Generate an API design and save it for your coding agent:
+
+```typescript
+import { runApiDesignerAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runApiDesignerAgent({
+  input: 'Design REST API for task manager with users, projects, and tasks',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('api-design.json', result.output);
+
+// Cursor: "Implement the REST routes from @api-design.json using Express"
+// Claude Code: "Read api-design.json and create the API routes with validation"
+```

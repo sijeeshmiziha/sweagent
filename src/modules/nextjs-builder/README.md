@@ -252,3 +252,29 @@ The planning module can use the nextjs-builder as an alternative frontend builde
 ```typescript
 import { routePlannerSubagent, apiRouteGeneratorSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Next.js App Router has complex conventions -- route groups, layouts, server components, server actions, API routes, and middleware matchers. Coding agents frequently mix up server and client components, use wrong data fetching patterns, and create flat route structures. The Next.js Builder produces a complete App Router configuration with proper route groups, layouts, server actions, and data fetching strategies.
+
+## Integration with Coding Agents
+
+Generate a Next.js configuration and save it for your coding agent:
+
+```typescript
+import { runNextjsBuilderAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runNextjsBuilderAgent({
+  input: 'Next.js app for project management with teams, tasks, and dashboards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('nextjs-config.json', result.output);
+
+// Cursor: "Scaffold the Next.js app from @nextjs-config.json with App Router"
+// Claude Code: "Read nextjs-config.json and create the pages, layouts, and API routes"
+```

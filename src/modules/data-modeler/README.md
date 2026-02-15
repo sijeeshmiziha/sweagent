@@ -252,3 +252,29 @@ The planning module uses the data-modeler's `entity-analyzer` subagent during th
 // Used internally by planning:
 import { dmEntityAnalyzerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Instead of letting your coding agent guess your database schema, generate a professional-grade data model first. The structured JSON output gives your coding agent exact entity definitions, field types, relationships, indexes, and validation rules -- no ambiguity, no missing fields, no forgotten indexes.
+
+## Integration with Coding Agents
+
+Generate a data model and save it for your coding agent to implement:
+
+```typescript
+import { runDataModelerAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runDataModelerAgent({
+  input: 'SaaS platform with organizations, users, projects, and billing',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('data-model.json', result.output);
+
+// Cursor: "Implement the Prisma/Mongoose models from @data-model.json"
+// Claude Code: "Read data-model.json and create the database models and migrations"
+```

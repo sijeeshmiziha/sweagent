@@ -261,3 +261,29 @@ The planning module uses the frontend-architect's `page-planner` subagent during
 // Used internally by planning:
 import { pagePlannerSubagent } from 'sweagent';
 ```
+
+---
+
+## Why Use This with Coding Agents
+
+Coding agents create frontend pages ad hoc -- inconsistent layouts, missing state management, no component reuse plan. The Frontend Architect designs a complete frontend blueprint with page specs, reusable components, routing strategy, and state management -- so your coding agent builds a cohesive frontend from the start instead of refactoring later.
+
+## Integration with Coding Agents
+
+Generate a frontend architecture and save it for your coding agent:
+
+```typescript
+import { runFrontendArchitectAgent } from 'sweagent';
+import { writeFileSync } from 'fs';
+
+const result = await runFrontendArchitectAgent({
+  input: 'Dashboard app with analytics, settings, and user management',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+
+writeFileSync('frontend-design.json', result.output);
+
+// Cursor: "Scaffold the frontend project from @frontend-design.json"
+// Claude Code: "Read frontend-design.json and create the page components and routing"
+```
