@@ -1,6 +1,6 @@
 /**
  * planning module - string-based requirement-to-plan pipeline (plan.md output)
- * Exports only planning-specific names to avoid conflict with requirement-gatherer.
+ * Two entry points: runPlanningAgent (create), editPlan (revise).
  */
 
 export type {
@@ -11,14 +11,12 @@ export type {
   PlanStageResult,
   StageInput,
   PlanningAgentConfig,
-  PlanningResult,
-  PlanValidationResult,
+  EditPlanConfig,
 } from './types';
 export type { Stage as PlanningStage } from './types';
 export type { ChatEntry as PlanningChatEntry } from './types';
 export { runPlanningAgent } from './agent';
-export { runPlanningWithResult } from './run-with-result';
-export { validatePlanForCodingAgent } from './validate-plan';
+export { editPlan } from './edit-agent';
 export { processPlanningChat } from './chat';
 export { PlanningContextBuilder, createPlanningContextBuilder } from './context-builder';
 export { assemblePlan, writePlanToFile } from './writer';

@@ -84,16 +84,12 @@ export interface PlanningAgentConfig {
   logger?: Logger;
 }
 
-/** Result of LLM-based plan validation */
-export interface PlanValidationResult {
-  valid: boolean;
-  feedback?: string;
-}
-
-/** Canonical JSON output: { planning: boolean, plan: string } */
-export interface PlanningResult {
-  /** true only if the plan passed the validator (implementation-ready for a coding agent) */
-  planning: boolean;
-  /** Full plan markdown, or last message if planning did not complete */
-  plan: string;
+/** Config for editPlan (edit existing plan with feedback) */
+export interface EditPlanConfig {
+  /** Current plan.md content */
+  existingPlan: string;
+  /** Edit instructions or additional context */
+  feedback: string;
+  model?: ModelConfig;
+  logger?: Logger;
 }

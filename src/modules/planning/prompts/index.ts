@@ -29,3 +29,4 @@ export {
   SYNTHESIS_USER_PROMPT,
   buildSynthesisPrompt,
 } from './synthesis.prompt';
+export { EDIT_PLAN_SYSTEM_PROMPT, buildEditPlanPrompt } from './edit.prompt';

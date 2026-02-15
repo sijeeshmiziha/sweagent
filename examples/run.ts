@@ -10,7 +10,7 @@ import { select, input, confirm } from '@inquirer/prompts';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
-import { runPlanningWithResult, createLogger, loggerConfigFromEnv } from 'sweagent';
+import { runPlanningAgent, createLogger, loggerConfigFromEnv } from 'sweagent';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(currentDir, '..');
@@ -206,18 +206,17 @@ function runExample(scriptPath: string, envOverrides: Record<string, string>): v
   });
 }
 
-async function runPlanning(
-  envOverrides: Record<string, string>
-): Promise<{ planning: boolean; plan: string }> {
+async function runPlanning(envOverrides: Record<string, string>): Promise<{ plan: string }> {
   const provider = (envOverrides.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
   const model = envOverrides.MODEL ?? 'gpt-4o-mini';
   const requirement = envOverrides.REQUIREMENT ?? envOverrides.AGENT_INPUT ?? '';
   const logger = createLogger(loggerConfigFromEnv({ name: 'planning', pretty: true }));
-  return runPlanningWithResult({
+  const result = await runPlanningAgent({
     input: requirement,
     model: { provider, model },
     logger,
   });
+  return { plan: result.output };
 }
 
 const GROUPS = [
@@ -262,8 +261,8 @@ async function main(): Promise<void> {
   console.log(`\nRunning: ${entry.name}\n`);
   if (entry.group === 'Planning') {
     const result = await runPlanning(envOverrides);
-    console.log('\n--- Planning Result (JSON) ---');
-    console.log(JSON.stringify(result, null, 2));
+    console.log('\n--- Planning Result (Markdown) ---');
+    console.log(result.plan);
   } else {
     runExample(entry.value, envOverrides);
   }
@@ -279,6 +278,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((err: unknown) => {
+  if (err instanceof Error && err.name === 'ExitPromptError') {
+    process.exit(0);
+  }
   console.error(err);
   process.exit(1);
 });
