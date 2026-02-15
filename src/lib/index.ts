@@ -53,6 +53,20 @@ export type {
   CreateSubagentToolOptions,
 } from './subagents';
 
+// Template Engine
+export { compileTemplate, scaffoldProject, registerHelpers } from './template-engine';
+export type {
+  TemplateContext,
+  TemplateModule,
+  TemplateField,
+  TemplateOperation,
+  TemplateAuth,
+  TemplateBranding,
+  ScaffoldConfig,
+  ScaffoldResult,
+  ScaffoldError,
+} from './template-engine';
+
 // MCP
 export { BaseMcpClient } from './mcp';
 export type {

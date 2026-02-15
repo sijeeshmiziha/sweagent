@@ -29,7 +29,11 @@ interface ExampleEntry {
     | 'API Designer'
     | 'Auth Designer'
     | 'Frontend Architect'
-    | 'Execution Planner';
+    | 'Execution Planner'
+    | 'Backend Architect'
+    | 'Apollo Builder'
+    | 'Express Builder'
+    | 'Next.js Builder';
   envVars: string[];
 }
 
@@ -124,6 +128,30 @@ const EXAMPLES: ExampleEntry[] = [
     group: 'Execution Planner',
     envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
   },
+  {
+    value: 'examples/backend-architect/01-backend-architect-agent.ts',
+    name: '01 - Backend Architect Agent',
+    group: 'Backend Architect',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/apollo-builder/01-apollo-builder-agent.ts',
+    name: '01 - Apollo Builder Agent',
+    group: 'Apollo Builder',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/express-builder/01-express-builder-agent.ts',
+    name: '01 - Express Builder Agent',
+    group: 'Express Builder',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/nextjs-builder/01-nextjs-builder-agent.ts',
+    name: '01 - Next.js Builder Agent',
+    group: 'Next.js Builder',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
 ];
 
 const ENV_VAR_LABELS: Record<string, string> = {
@@ -204,6 +232,10 @@ const GROUPS = [
   'Auth Designer',
   'Frontend Architect',
   'Execution Planner',
+  'Backend Architect',
+  'Apollo Builder',
+  'Express Builder',
+  'Next.js Builder',
 ] as const;
 type Group = (typeof GROUPS)[number];
 
