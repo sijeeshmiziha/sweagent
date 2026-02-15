@@ -9,6 +9,7 @@ import { scaffoldProject } from '../../../lib/template-engine';
 import type { ScaffoldResult } from '../../../lib/template-engine';
 import type { TemplateContext } from '../../../lib/template-engine';
 import type { TExpressConfig } from '../schemas';
+import { safeJsonParse } from '../../../lib/utils';
 
 /** Convert express config to template context */
 function toTemplateContext(config: TExpressConfig): TemplateContext {
@@ -38,7 +39,7 @@ export const scaffoldExpressTool = defineTool({
     outputDir: z.string().describe('Absolute path to the output directory'),
   }),
   handler: async ({ config, outputDir }): Promise<ScaffoldResult> => {
-    const parsed = JSON.parse(config) as TExpressConfig;
+    const parsed = safeJsonParse(config, 'express config') as TExpressConfig;
     const templateDir = path.resolve(process.cwd(), '.ref/templates/express');
     const context = toTemplateContext(parsed);
 

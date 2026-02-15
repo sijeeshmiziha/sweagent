@@ -8,6 +8,7 @@ import { defineTool } from '../../../lib/tools';
 import { scaffoldProject } from '../../../lib/template-engine';
 import type { ScaffoldResult, TemplateContext } from '../../../lib/template-engine';
 import type { TApplicationSchema } from '../schemas';
+import { safeJsonParse } from '../../../lib/utils';
 
 /** Convert ApplicationSchema config to template context */
 function toTemplateContext(config: TApplicationSchema): TemplateContext {
@@ -40,7 +41,7 @@ export const scaffoldViteTool = defineTool({
     outputDir: z.string().describe('Absolute path to the output directory'),
   }),
   handler: async ({ config, outputDir }): Promise<ScaffoldResult> => {
-    const parsed = JSON.parse(config) as TApplicationSchema;
+    const parsed = safeJsonParse(config, 'application schema config') as TApplicationSchema;
     const templateDir = path.resolve(process.cwd(), '.ref/templates/vite');
     const context = toTemplateContext(parsed);
 

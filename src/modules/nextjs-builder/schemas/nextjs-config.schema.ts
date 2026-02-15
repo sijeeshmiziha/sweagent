@@ -4,15 +4,27 @@
 
 import { z } from 'zod';
 
+/** Case-insensitive enum */
+const ciEnum = <T extends string>(values: readonly [T, ...T[]]) =>
+  z
+    .string()
+    .transform(s => s.toLowerCase().trim())
+    .pipe(z.enum(values));
+
+const httpMethodSchema = z
+  .string()
+  .transform(s => s.toUpperCase().trim())
+  .pipe(z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']));
+
 export const nextjsPageSchema = z.object({
   path: z.string(),
   name: z.string(),
-  access: z.enum(['public', 'protected']),
+  access: ciEnum(['public', 'protected']),
   routeGroup: z.string().default(''),
   purpose: z.string(),
-  hasForm: z.boolean().default(false),
+  hasForm: z.coerce.boolean().default(false),
   formFields: z.array(z.string()).default([]),
-  dataFetching: z.enum(['server', 'client', 'hybrid']).default('server'),
+  dataFetching: ciEnum(['server', 'client', 'hybrid']).default('server'),
   actions: z.array(z.string()).default([]),
 });
 
@@ -26,8 +38,8 @@ export const nextjsLayoutSchema = z.object({
 
 export const nextjsApiRouteSchema = z.object({
   path: z.string(),
-  methods: z.array(z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])),
-  auth: z.boolean().default(true),
+  methods: z.array(httpMethodSchema).default([]),
+  auth: z.coerce.boolean().default(true),
   description: z.string(),
 });
 
@@ -39,8 +51,8 @@ export const serverActionSchema = z.object({
 });
 
 export const nextjsConfigSchema = z.object({
-  appName: z.string(),
-  pages: z.array(nextjsPageSchema),
+  appName: z.string().default('app'),
+  pages: z.array(nextjsPageSchema).default([]),
   layouts: z.array(nextjsLayoutSchema).default([]),
   apiRoutes: z.array(nextjsApiRouteSchema).default([]),
   serverActions: z.array(serverActionSchema).default([]),

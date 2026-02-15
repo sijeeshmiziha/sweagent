@@ -51,7 +51,6 @@ async function main() {
     model: createModel({
       provider,
       model: modelName,
-      apiKey: process.env.OPENAI_API_KEY,
     }),
     tools: createToolSet({ calculator: calculatorTool }),
     systemPrompt: 'You are a helpful math assistant. Use the calculator tool to solve problems.',

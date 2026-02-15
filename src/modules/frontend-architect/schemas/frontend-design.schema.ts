@@ -14,7 +14,10 @@ export const formFieldSchema = z.object({
 export const pageDesignSchema = z.object({
   path: z.string(),
   name: z.string(),
-  access: z.enum(['public', 'protected']),
+  access: z
+    .string()
+    .transform(s => s.toLowerCase().trim())
+    .pipe(z.enum(['public', 'protected'])),
   purpose: z.string(),
   formFields: z.array(formFieldSchema).default([]),
   actions: z.array(z.string()).default([]),
@@ -26,15 +29,18 @@ export const pageDesignSchema = z.object({
 
 export const componentDesignSchema = z.object({
   name: z.string(),
-  type: z.enum(['layout', 'shared', 'form', 'display', 'navigation']),
+  type: z
+    .string()
+    .transform(s => s.toLowerCase().trim())
+    .pipe(z.enum(['layout', 'shared', 'form', 'display', 'navigation'])),
   purpose: z.string(),
   props: z.array(z.string()).default([]),
   usedIn: z.array(z.string()).default([]),
 });
 
 export const frontendDesignSchema = z.object({
-  pages: z.array(pageDesignSchema),
-  components: z.array(componentDesignSchema),
+  pages: z.array(pageDesignSchema).default([]),
+  components: z.array(componentDesignSchema).default([]),
   stateManagement: z.string().default(''),
   routingNotes: z.string().default(''),
 });

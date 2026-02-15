@@ -20,7 +20,10 @@ export const edgeCaseSchema = z.object({
   area: z.string(),
   scenario: z.string(),
   handling: z.string(),
-  severity: z.enum(['critical', 'warning', 'info']),
+  severity: z
+    .string()
+    .transform(s => s.toLowerCase().trim())
+    .pipe(z.enum(['critical', 'warning', 'info'])),
 });
 
 export const testChecklistItemSchema = z.object({
@@ -30,13 +33,13 @@ export const testChecklistItemSchema = z.object({
 });
 
 export const executionPlanSchema = z.object({
-  phases: z.array(implementationPhaseSchema),
-  currentState: z.string(),
-  desiredEndState: z.string(),
-  edgeCases: z.array(edgeCaseSchema),
+  phases: z.array(implementationPhaseSchema).default([]),
+  currentState: z.string().default(''),
+  desiredEndState: z.string().default(''),
+  edgeCases: z.array(edgeCaseSchema).default([]),
   securityNotes: z.array(z.string()).default([]),
   performanceNotes: z.array(z.string()).default([]),
-  testingChecklist: z.array(testChecklistItemSchema),
+  testingChecklist: z.array(testChecklistItemSchema).default([]),
 });
 
 export type TExecutionPlan = z.infer<typeof executionPlanSchema>;

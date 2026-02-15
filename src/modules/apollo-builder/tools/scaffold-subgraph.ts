@@ -9,6 +9,7 @@ import { scaffoldProject } from '../../../lib/template-engine';
 import type { ScaffoldResult } from '../../../lib/template-engine';
 import type { TemplateContext } from '../../../lib/template-engine';
 import type { TSubgraphConfig } from '../schemas';
+import { safeJsonParse } from '../../../lib/utils';
 
 /** Convert subgraph config to template context */
 function toTemplateContext(config: TSubgraphConfig): TemplateContext {
@@ -40,7 +41,7 @@ export const scaffoldSubgraphTool = defineTool({
     outputDir: z.string().describe('Absolute path to the output directory'),
   }),
   handler: async ({ config, outputDir }): Promise<ScaffoldResult> => {
-    const parsed = JSON.parse(config) as TSubgraphConfig;
+    const parsed = safeJsonParse(config, 'subgraph config') as TSubgraphConfig;
     const templateDir = path.resolve(process.cwd(), '.ref/templates/subgraph');
     const context = toTemplateContext(parsed);
 

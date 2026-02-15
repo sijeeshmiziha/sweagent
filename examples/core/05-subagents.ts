@@ -81,7 +81,6 @@ async function main() {
   const parentModel = createModel({
     provider,
     model: modelName,
-    apiKey: process.env.OPENAI_API_KEY,
   });
   const subagentTools = createSubagentToolSet([researcherDef, summarizerDef], {
     parentModel,

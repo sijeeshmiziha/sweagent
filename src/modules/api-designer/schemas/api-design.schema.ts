@@ -19,6 +19,12 @@ const stringRecordSchema = z
     )
   );
 
+/** Coerce arrays of mixed strings/objects to string arrays (models often return objects). */
+const stringOrObjectArraySchema = z
+  .array(z.unknown())
+  .default([])
+  .transform(arr => arr.map(v => (typeof v === 'string' ? v : JSON.stringify(v))));
+
 export const restEndpointSchema = z.object({
   id: z.string(),
   resource: z.string(),
@@ -30,8 +36,8 @@ export const restEndpointSchema = z.object({
   requestBody: stringRecordSchema,
   responseBody: stringRecordSchema,
   queryParams: stringRecordSchema,
-  validation: z.array(z.string()).default([]),
-  errorResponses: z.array(z.string()).default([]),
+  validation: stringOrObjectArraySchema,
+  errorResponses: stringOrObjectArraySchema,
 });
 
 export const graphqlOperationSchema = z.object({
@@ -50,10 +56,11 @@ export const graphqlOperationSchema = z.object({
   returnType: z.string(),
 });
 
-const apiStyleSchema = z
-  .union([z.enum(['rest', 'graphql']), z.string()])
-  .transform(s => (typeof s === 'string' ? s.toLowerCase() : s))
-  .pipe(z.enum(['rest', 'graphql']));
+const apiStyleSchema = z.unknown().transform(v => {
+  const s = typeof v === 'string' ? v.toLowerCase().trim() : 'rest';
+  if (s.includes('graphql')) return 'graphql' as const;
+  return 'rest' as const;
+});
 
 export const apiDesignSchema = z.object({
   style: apiStyleSchema,

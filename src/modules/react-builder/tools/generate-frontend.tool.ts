@@ -9,13 +9,7 @@ import { ApplicationSchema, type TApplicationSchema } from '../schemas';
 import { REACT_BUILDER_SYSTEM_PROMPT } from '../prompts/system.prompt';
 import { buildInstructionPrompt, buildExampleShotPrompt } from '../prompts';
 import type { AppInfo } from '../types';
-
-function extractJson(text: string): string {
-  const trimmed = text.trim();
-  const codeBlock = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
-  if (codeBlock?.[1]) return codeBlock[1].trim();
-  return trimmed;
-}
+import { parseModelJsonResponse } from '../../../lib/utils';
 
 function buildGeneratePrompt(graphqlSchema: string, appInfo?: AppInfo): string {
   const instruction = buildInstructionPrompt();
@@ -66,9 +60,7 @@ export function createGenerateFrontendTool(model: Model) {
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.2, maxOutputTokens: 16384 });
-      const jsonStr = extractJson(response.text);
-      const parsed = JSON.parse(jsonStr) as unknown;
-      return ApplicationSchema.parse(parsed);
+      return parseModelJsonResponse(response.text, ApplicationSchema);
     },
   });
 }

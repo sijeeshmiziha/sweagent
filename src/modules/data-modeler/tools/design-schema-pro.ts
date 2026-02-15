@@ -7,13 +7,7 @@ import type { Model } from '../../../lib/types/model';
 import { defineTool } from '../../../lib/tools';
 import { dataModelDesignSchema, type TDataModelDesign } from '../schemas';
 import { buildProDesignPrompt } from '../prompts';
-
-function extractJson(text: string): string {
-  const trimmed = text.trim();
-  const codeBlock = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
-  if (codeBlock?.[1]) return codeBlock[1].trim();
-  return trimmed;
-}
+import { parseModelJsonResponse } from '../../../lib/utils';
 
 /**
  * Creates the design_schema_pro tool for structured 5-phase data modeling.
@@ -44,9 +38,7 @@ export function createDesignSchemaProTool(model: Model) {
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.2, maxOutputTokens: 16384 });
-      const jsonStr = extractJson(response.text);
-      const parsed = JSON.parse(jsonStr) as unknown;
-      return dataModelDesignSchema.parse(parsed);
+      return parseModelJsonResponse(response.text, dataModelDesignSchema);
     },
   });
 }

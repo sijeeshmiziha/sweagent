@@ -7,13 +7,7 @@ import type { Model } from '../../../lib/types/model';
 import { defineTool } from '../../../lib/tools';
 import { projectSchema, type TBackendProjectSchema } from '../schemas';
 import { createDbDesignPrompt } from '../prompts';
-
-function extractJson(text: string): string {
-  const trimmed = text.trim();
-  const codeBlock = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
-  if (codeBlock?.[1]) return codeBlock[1].trim();
-  return trimmed;
-}
+import { parseModelJsonResponse } from '../../../lib/utils';
 
 /**
  * Creates the design_database tool. Requires a model to invoke for schema generation.
@@ -36,10 +30,7 @@ export function createDesignDatabaseTool(model: Model) {
         { role: 'user' as const, content: userPrompt },
       ];
       const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 8192 });
-      const raw = response.text;
-      const jsonStr = extractJson(raw);
-      const parsed = JSON.parse(jsonStr) as unknown;
-      return projectSchema.parse(parsed);
+      return parseModelJsonResponse(response.text, projectSchema);
     },
   });
 }

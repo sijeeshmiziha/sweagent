@@ -73,7 +73,6 @@ async function main() {
     model: createModel({
       provider,
       model: modelName,
-      apiKey: process.env.OPENAI_API_KEY,
     }),
     tools: createToolSet({
       web_search: searchTool,

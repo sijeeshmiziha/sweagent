@@ -7,13 +7,7 @@ import type { Model } from '../../../lib/types/model';
 import { defineTool } from '../../../lib/tools';
 import { backendDesignSchema, type TBackendDesign } from '../schemas';
 import { buildDesignBackendPrompt } from '../prompts';
-
-function extractJson(text: string): string {
-  const trimmed = text.trim();
-  const codeBlock = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
-  if (codeBlock?.[1]) return codeBlock[1].trim();
-  return trimmed;
-}
+import { parseModelJsonResponse } from '../../../lib/utils';
 
 /**
  * Creates the design_backend tool for backend architecture generation.
@@ -39,9 +33,7 @@ export function createDesignBackendTool(model: Model) {
         temperature: 0.3,
         maxOutputTokens: 16384,
       });
-      const jsonStr = extractJson(response.text);
-      const parsed = JSON.parse(jsonStr) as unknown;
-      return backendDesignSchema.parse(parsed);
+      return parseModelJsonResponse(response.text, backendDesignSchema);
     },
   });
 }

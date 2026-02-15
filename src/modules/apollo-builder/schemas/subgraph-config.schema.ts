@@ -4,17 +4,24 @@
 
 import { z } from 'zod';
 
+/** Case-insensitive enum */
+const ciEnum = <T extends string>(values: readonly [T, ...T[]]) =>
+  z
+    .string()
+    .transform(s => s.toLowerCase().trim())
+    .pipe(z.enum(values));
+
 export const graphqlFieldSchema = z.object({
   name: z.string(),
   type: z.string(),
-  nullable: z.boolean().default(false),
-  isList: z.boolean().default(false),
+  nullable: z.coerce.boolean().default(false),
+  isList: z.coerce.boolean().default(false),
   description: z.string().default(''),
 });
 
 export const graphqlTypeSchema = z.object({
   name: z.string(),
-  kind: z.enum(['type', 'input', 'enum', 'interface', 'union']),
+  kind: ciEnum(['type', 'input', 'enum', 'interface', 'union']),
   fields: z.array(graphqlFieldSchema).default([]),
   values: z.array(z.string()).default([]),
   description: z.string().default(''),
@@ -22,10 +29,10 @@ export const graphqlTypeSchema = z.object({
 
 export const resolverOperationSchema = z.object({
   name: z.string(),
-  type: z.enum(['query', 'mutation', 'subscription']),
+  type: ciEnum(['query', 'mutation', 'subscription']),
   args: z.array(graphqlFieldSchema).default([]),
   returnType: z.string(),
-  auth: z.boolean().default(true),
+  auth: z.coerce.boolean().default(true),
   roles: z.array(z.string()).default([]),
   description: z.string().default(''),
 });
@@ -39,12 +46,12 @@ export const subgraphModuleSchema = z.object({
 });
 
 export const subgraphConfigSchema = z.object({
-  appName: z.string(),
+  appName: z.string().default('app'),
   port: z.number().default(4000),
   database: z.string().default('mongodb'),
-  modules: z.array(subgraphModuleSchema),
+  modules: z.array(subgraphModuleSchema).default([]),
   sharedTypes: z.array(graphqlTypeSchema).default([]),
-  authDirective: z.boolean().default(true),
+  authDirective: z.coerce.boolean().default(true),
   envVars: z.array(z.string()).default([]),
 });
 

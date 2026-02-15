@@ -59,11 +59,12 @@ export interface ExecuteToolOptions {
 export async function executeTool<TInput, TOutput>(
   toolImpl: Tool<TInput, TOutput>,
   input: TInput,
-  options?: ExecuteToolOptions
+  options?: ExecuteToolOptions & { toolName?: string }
 ): Promise<ToolExecutionResult<TOutput>> {
   const { logger } = options ?? {};
   const toolName =
-    'name' in toolImpl && typeof toolImpl.name === 'string' ? toolImpl.name : 'unknown';
+    options?.toolName ??
+    ('name' in toolImpl && typeof toolImpl.name === 'string' ? toolImpl.name : 'unknown');
 
   if (!toolImpl.execute) {
     logger?.error('Tool has no execute function', { toolName });
@@ -83,7 +84,7 @@ export async function executeTool<TInput, TOutput>(
     logger?.error('Tool failed', {
       toolName,
       toolCallId: options?.toolCallId,
-      error: e instanceof Error ? e : { message: msg },
+      error: msg,
     });
     return { success: false, error: msg };
   }
@@ -97,10 +98,13 @@ export async function executeToolByName(
 ): Promise<ToolExecutionResult> {
   const toolImpl = tools[name];
   if (!toolImpl) {
-    options?.logger?.error('Tool not found', { name });
+    options?.logger?.error('Tool not found', {
+      name,
+      availableTools: Object.keys(tools),
+    });
     throw new ToolError(`Tool not found: ${name}`);
   }
-  return executeTool(toolImpl, input, options);
+  return executeTool(toolImpl, input, { ...options, toolName: name });
 }
 
 export type JsonSchemaObject = Record<string, unknown>;

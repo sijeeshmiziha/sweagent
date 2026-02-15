@@ -25,7 +25,6 @@ async function main() {
   const model = createModel({
     provider,
     model: modelName,
-    apiKey: process.env.OPENAI_API_KEY, // Optional: auto-reads from env if not set
     temperature: 0.7,
   });
 
