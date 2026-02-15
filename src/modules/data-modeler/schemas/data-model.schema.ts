@@ -43,7 +43,24 @@ export const dataEntitySchema = z.object({
   description: z.string().default(''),
   fields: z
     .union([z.array(entityFieldSchema), z.record(z.string(), z.unknown())])
-    .transform(v => (Array.isArray(v) ? v : Object.values(v).map(f => entityFieldSchema.parse(f)))),
+    .transform((v, ctx) => {
+      if (Array.isArray(v)) return v;
+      const results: z.infer<typeof entityFieldSchema>[] = [];
+      for (const [key, raw] of Object.entries(v)) {
+        const obj =
+          typeof raw === 'object' && raw !== null ? { ...(raw as Record<string, unknown>) } : {};
+        if (!obj.name) obj.name = key;
+        const result = entityFieldSchema.safeParse(obj);
+        if (result.success) {
+          results.push(result.data);
+        } else {
+          for (const issue of result.error.issues) {
+            ctx.addIssue({ ...issue, path: [key, ...issue.path] });
+          }
+        }
+      }
+      return results;
+    }),
   indexes: z.array(entityIndexSchema).default([]),
   relations: z.array(entityRelationSchema).default([]),
 });

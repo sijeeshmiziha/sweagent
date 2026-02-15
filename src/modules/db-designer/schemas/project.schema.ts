@@ -10,7 +10,24 @@ export const projectSchema = z.object({
   projectDescription: z.string().default(''),
   modules: z
     .union([z.array(moduleSchema), z.record(z.string(), z.unknown())])
-    .transform(v => (Array.isArray(v) ? v : Object.values(v).map(m => moduleSchema.parse(m)))),
+    .transform((v, ctx) => {
+      if (Array.isArray(v)) return v;
+      const results: z.infer<typeof moduleSchema>[] = [];
+      for (const [key, raw] of Object.entries(v)) {
+        const obj =
+          typeof raw === 'object' && raw !== null ? { ...(raw as Record<string, unknown>) } : {};
+        if (!obj.moduleName) obj.moduleName = key;
+        const result = moduleSchema.safeParse(obj);
+        if (result.success) {
+          results.push(result.data);
+        } else {
+          for (const issue of result.error.issues) {
+            ctx.addIssue({ ...issue, path: [key, ...issue.path] });
+          }
+        }
+      }
+      return results;
+    }),
   author: z.string().default('sijeeshmiziha'),
 });
 

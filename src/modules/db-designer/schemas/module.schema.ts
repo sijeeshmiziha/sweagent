@@ -17,9 +17,24 @@ export const moduleSchema = z.object({
     .record(z.string(), z.array(z.enum(['CREATE', 'READ', 'UPDATE', 'DELETE'])))
     .optional()
     .describe('Permissions per role'),
-  fields: z
-    .union([z.array(fieldSchema), z.record(z.string(), z.unknown())])
-    .transform(v => (Array.isArray(v) ? v : Object.values(v).map(f => fieldSchema.parse(f)))),
+  fields: z.union([z.array(fieldSchema), z.record(z.string(), z.unknown())]).transform((v, ctx) => {
+    if (Array.isArray(v)) return v;
+    const results: z.infer<typeof fieldSchema>[] = [];
+    for (const [key, raw] of Object.entries(v)) {
+      const obj =
+        typeof raw === 'object' && raw !== null ? { ...(raw as Record<string, unknown>) } : {};
+      if (!obj.fieldName) obj.fieldName = key;
+      const result = fieldSchema.safeParse(obj);
+      if (result.success) {
+        results.push(result.data);
+      } else {
+        for (const issue of result.error.issues) {
+          ctx.addIssue({ ...issue, path: [key, ...issue.path] });
+        }
+      }
+    }
+    return results;
+  }),
 });
 
 export type TModuleSchema = z.infer<typeof moduleSchema>;
