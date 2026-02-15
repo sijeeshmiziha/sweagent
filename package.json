@@ -39,6 +39,9 @@
     "tokens:verbose": "tsx .scripts/token-calculator.ts --verbose",
     "tokens:json": "tsx .scripts/token-calculator.ts --json",
     "ci": "npm run typecheck && npm run lint && npm run test:unit && npm run build",
+    "release:patch": "npm version patch && git push origin main --tags",
+    "release:minor": "npm version minor && git push origin main --tags",
+    "release:major": "npm version major && git push origin main --tags",
     "prepublishOnly": "npm run ci",
     "prepare": "husky"
   },
