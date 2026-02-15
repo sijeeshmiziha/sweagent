@@ -15,6 +15,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -42,15 +44,28 @@ const exampleModule: ExampleModule = {
       'Task manager: dashboard with stats, project list/detail pages, task board (Kanban), user settings. Auth with login/signup. SEO for public pages.'
     );
 
-    console.log('\nRunning nextjs-builder agent...\n');
-    const result = await runNextjsBuilderAgent({
-      input: requirement,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = requirement;
 
-    printOutput('Next.js Config Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning nextjs-builder agent...\n');
+      const result = await runNextjsBuilderAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('Next.js Config Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('Next.js Builder', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(requirement, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

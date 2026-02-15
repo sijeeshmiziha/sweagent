@@ -10,7 +10,14 @@ import { fileURLToPath } from 'node:url';
 import { input } from '@inquirer/prompts';
 import { runReactBuilderAgent, createLogger, loggerConfigFromEnv } from 'sweagent';
 import type { ExampleModule } from '../lib/types.js';
-import { getProviderFromEnv, getModelFromEnv, printHeader, printOutput } from '../lib/input.js';
+import {
+  getProviderFromEnv,
+  getModelFromEnv,
+  printHeader,
+  printOutput,
+  reviewStep,
+  buildRefinementInput,
+} from '../lib/input.js';
 
 const DEFAULT_SCHEMA = `type Query { user(id: ID!): User users: [User!]! }
 type Mutation { createUser(name: String!, email: String!): User }
@@ -45,20 +52,33 @@ const exampleModule: ExampleModule = {
         default: DEFAULT_SCHEMA,
       }));
 
-    console.log('\nRunning react-builder agent...\n');
-    const result = await runReactBuilderAgent({
-      input: schema,
-      model: { provider, model },
-      maxIterations,
-      logger,
-    });
+    const isInteractive = !(process.env.GRAPHQL_SCHEMA ?? process.env.AGENT_INPUT);
+    let agentInput = schema;
 
-    printOutput('React Config Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
-    if (result.totalUsage) {
-      console.log(
-        `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
-      );
+    while (true) {
+      console.log('\nRunning react-builder agent...\n');
+      const result = await runReactBuilderAgent({
+        input: agentInput,
+        model: { provider, model },
+        maxIterations,
+        logger,
+      });
+
+      printOutput('React Config Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+      if (result.totalUsage) {
+        console.log(
+          `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
+        );
+      }
+
+      const review = await reviewStep('React Builder', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(schema, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
     }
   },
 };

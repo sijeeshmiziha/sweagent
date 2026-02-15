@@ -15,6 +15,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -42,15 +44,28 @@ const exampleModule: ExampleModule = {
       'Task manager: User (name, email, role), Project (name, description, owner), Task (title, status, assignee, project). REST API with JWT auth.'
     );
 
-    console.log('\nRunning express-builder agent...\n');
-    const result = await runExpressBuilderAgent({
-      input: requirement,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = requirement;
 
-    printOutput('Express Config Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning express-builder agent...\n');
+      const result = await runExpressBuilderAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('Express Config Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('Express Builder', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(requirement, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

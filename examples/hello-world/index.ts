@@ -8,7 +8,14 @@
 import { fileURLToPath } from 'node:url';
 import { runHelloWorldAgent, createLogger, loggerConfigFromEnv } from 'sweagent';
 import type { ExampleModule } from '../lib/types.js';
-import { getProviderFromEnv, getModelFromEnv, printHeader, printOutput } from '../lib/input.js';
+import {
+  getProviderFromEnv,
+  getModelFromEnv,
+  printHeader,
+  printOutput,
+  reviewStep,
+  buildRefinementInput,
+} from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
   name: 'Hello World',
@@ -36,21 +43,34 @@ const exampleModule: ExampleModule = {
       'You are a friendly greeter. Use the hello_world tool to greet each person the user mentions.';
     const maxIterations = Number(process.env.MAX_ITERATIONS ?? '5') || 5;
 
-    console.log('Running hello-world agent...\n');
-    const result = await runHelloWorldAgent({
-      input: agentInput,
-      model: { provider, model },
-      systemPrompt,
-      maxIterations,
-      logger,
-    });
+    const isInteractive = !(process.env.PROMPT ?? process.env.AGENT_INPUT);
+    let currentInput = agentInput;
 
-    printOutput('Hello World Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
-    if (result.totalUsage) {
-      console.log(
-        `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
-      );
+    while (true) {
+      console.log('Running hello-world agent...\n');
+      const result = await runHelloWorldAgent({
+        input: currentInput,
+        model: { provider, model },
+        systemPrompt,
+        maxIterations,
+        logger,
+      });
+
+      printOutput('Hello World Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+      if (result.totalUsage) {
+        console.log(
+          `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
+        );
+      }
+
+      const review = await reviewStep('Hello World', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        currentInput = buildRefinementInput(agentInput, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
     }
   },
 };

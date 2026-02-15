@@ -16,6 +16,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -44,20 +46,33 @@ const exampleModule: ExampleModule = {
       'E-commerce: users, orders, products. Admins manage products. Users place orders and have a profile.'
     );
 
-    console.log('\nRunning db-designer agent...\n');
-    const result = await runDbDesignerAgent({
-      input: requirement,
-      model: { provider, model },
-      maxIterations,
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = requirement;
 
-    printOutput('DB Schema Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
-    if (result.totalUsage) {
-      console.log(
-        `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
-      );
+    while (true) {
+      console.log('\nRunning db-designer agent...\n');
+      const result = await runDbDesignerAgent({
+        input: agentInput,
+        model: { provider, model },
+        maxIterations,
+        logger,
+      });
+
+      printOutput('DB Schema Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+      if (result.totalUsage) {
+        console.log(
+          `Tokens: input=${result.totalUsage.inputTokens ?? 0} output=${result.totalUsage.outputTokens ?? 0}`
+        );
+      }
+
+      const review = await reviewStep('DB Designer', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(requirement, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
     }
   },
 };

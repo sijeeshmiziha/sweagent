@@ -16,6 +16,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -51,15 +53,32 @@ const exampleModule: ExampleModule = {
       ],
     });
 
-    console.log('\nRunning api-designer agent...\n');
-    const result = await runApiDesignerAgent({
-      input: `${requirement}\n\nAPI style: ${apiStyle}`,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = `${requirement}\n\nAPI style: ${apiStyle}`;
 
-    printOutput('API Design Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning api-designer agent...\n');
+      const result = await runApiDesignerAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('API Design Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('API Designer', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(
+          `${requirement}\n\nAPI style: ${apiStyle}`,
+          result.output,
+          review.feedback ?? ''
+        );
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

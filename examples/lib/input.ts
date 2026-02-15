@@ -112,3 +112,59 @@ export function printOutput(label: string, output: string, maxLen = 3000): void 
   console.log(`\n--- ${label} ---`);
   console.log(output.slice(0, maxLen) + (output.length > maxLen ? '\n...' : ''));
 }
+
+// ---------------------------------------------------------------------------
+// Refinement helpers
+// ---------------------------------------------------------------------------
+
+/** Build an input that includes the previous output + feedback for targeted refinement. */
+export function buildRefinementInput(
+  originalInput: string,
+  previousOutput: string,
+  feedback: string
+): string {
+  return (
+    `${originalInput}\n\n` +
+    `Previously generated output:\n${previousOutput}\n\n` +
+    `Feedback: ${feedback}\n` +
+    `Refine the output based on the feedback above. Keep everything that works, only change what the feedback mentions.`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Interactive review helpers
+// ---------------------------------------------------------------------------
+
+export interface ReviewResult {
+  action: 'accept' | 'regenerate' | 'skip';
+  feedback?: string;
+}
+
+/** Show a preview and let the user accept, regenerate, or skip a step's output. */
+export async function reviewStep(
+  stepName: string,
+  output: string,
+  isInteractive: boolean
+): Promise<ReviewResult> {
+  if (!isInteractive) return { action: 'accept' };
+
+  const preview = output.slice(0, 500) + (output.length > 500 ? '\n...' : '');
+  console.log(`\n  --- ${stepName} Preview ---`);
+  console.log(preview);
+
+  const action = await select<'accept' | 'regenerate' | 'skip'>({
+    message: `[${stepName}] Review this output:`,
+    choices: [
+      { value: 'accept', name: 'Accept -- continue' },
+      { value: 'regenerate', name: 'Regenerate -- provide feedback and re-run' },
+      { value: 'skip', name: 'Skip -- use empty output' },
+    ],
+  });
+
+  if (action === 'regenerate') {
+    const feedback = await input({ message: 'Your feedback:' });
+    return { action: 'regenerate', feedback };
+  }
+
+  return { action };
+}

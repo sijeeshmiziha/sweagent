@@ -16,6 +16,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -51,15 +53,32 @@ const exampleModule: ExampleModule = {
       ],
     });
 
-    console.log('\nRunning data-modeler agent...\n');
-    const result = await runDataModelerAgent({
-      input: `${requirement}\n\nTarget database: ${dbType}`,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = `${requirement}\n\nTarget database: ${dbType}`;
 
-    printOutput('Data Model Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning data-modeler agent...\n');
+      const result = await runDataModelerAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('Data Model Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('Data Modeler', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(
+          `${requirement}\n\nTarget database: ${dbType}`,
+          result.output,
+          review.feedback ?? ''
+        );
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

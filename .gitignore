@@ -31,6 +31,9 @@ npm-debug.log*
 # Test coverage
 coverage/
 
+# Pipeline output
+output/
+
 # TypeScript cache
 *.tsbuildinfo
 

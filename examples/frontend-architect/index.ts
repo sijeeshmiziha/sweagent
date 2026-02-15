@@ -15,6 +15,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -42,15 +44,28 @@ const exampleModule: ExampleModule = {
       'Fitness app with Next.js. Pages: landing, signup, login, dashboard, workout log, nutrition tracker, goals, profile, settings. Admin panel for user management.'
     );
 
-    console.log('\nRunning frontend-architect agent...\n');
-    const result = await runFrontendArchitectAgent({
-      input: requirement,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = requirement;
 
-    printOutput('Frontend Design Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning frontend-architect agent...\n');
+      const result = await runFrontendArchitectAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('Frontend Design Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('Frontend Architect', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(requirement, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

@@ -15,6 +15,8 @@ import {
   promptRequirement,
   printHeader,
   printOutput,
+  reviewStep,
+  buildRefinementInput,
 } from '../lib/input.js';
 
 const exampleModule: ExampleModule = {
@@ -42,15 +44,28 @@ const exampleModule: ExampleModule = {
       'Task manager app with Next.js, MongoDB, JWT auth. Features: user CRUD, project CRUD, task management with assignments and due dates, simple dashboard with task stats.'
     );
 
-    console.log('\nRunning execution-planner agent...\n');
-    const result = await runExecutionPlannerAgent({
-      input: requirement,
-      model: { provider, model },
-      logger,
-    });
+    const isInteractive = !process.env.REQUIREMENT;
+    let agentInput = requirement;
 
-    printOutput('Execution Plan Output', result.output);
-    console.log(`\nSteps: ${result.steps.length}`);
+    while (true) {
+      console.log('\nRunning execution-planner agent...\n');
+      const result = await runExecutionPlannerAgent({
+        input: agentInput,
+        model: { provider, model },
+        logger,
+      });
+
+      printOutput('Execution Plan Output', result.output);
+      console.log(`\nSteps: ${result.steps.length}`);
+
+      const review = await reviewStep('Execution Planner', result.output, isInteractive);
+      if (review.action === 'regenerate') {
+        agentInput = buildRefinementInput(requirement, result.output, review.feedback ?? '');
+        console.log('\nRegenerating with feedback...\n');
+        continue;
+      }
+      break;
+    }
   },
 };
 

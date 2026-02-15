@@ -5,6 +5,8 @@
 
 import type { ExampleModule } from './types.js';
 
+import quickStart from '../quick-start/index.js';
+import fullPipeline from '../full-pipeline/index.js';
 import core from '../core/index.js';
 import helloWorld from '../hello-world/index.js';
 import planning from '../planning/index.js';
@@ -23,6 +25,8 @@ import executionPlanner from '../execution-planner/index.js';
 
 /** All example modules in recommended order. */
 export const modules: ExampleModule[] = [
+  quickStart,
+  fullPipeline,
   core,
   helloWorld,
   planning,
