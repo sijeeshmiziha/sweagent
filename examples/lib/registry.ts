@@ -20,7 +20,6 @@ import frontendArchitect from '../frontend-architect/index.js';
 import reactBuilder from '../react-builder/index.js';
 import nextjsBuilder from '../nextjs-builder/index.js';
 import executionPlanner from '../execution-planner/index.js';
-import todoPlanner from '../todo-planner/index.js';
 
 /** All example modules in recommended order. */
 export const modules: ExampleModule[] = [
@@ -39,5 +38,4 @@ export const modules: ExampleModule[] = [
   reactBuilder,
   nextjsBuilder,
   executionPlanner,
-  todoPlanner,
 ];
