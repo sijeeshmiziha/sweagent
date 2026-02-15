@@ -1,19 +1,19 @@
 # Examples
 
 <p align="center">
-  <strong>Runnable examples</strong> demonstrating sweagent's capabilities — models, tools, and agents.
+  <strong>Runnable examples for every domain agent</strong> -- planning pipelines, requirement gathering, database design, frontend generation, and the core framework.
 </p>
 
 <p align="center">
   <a href="../README.md">← Main README</a> •
-  <a href="../README.md#getting-started-tutorial">Tutorial</a> •
+  <a href="../README.md#domain-agents">Domain Agents</a> •
   <a href="../README.md#api-reference">API Reference</a> •
   <a href="../CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
 
-This directory contains copy-pasteable scripts you can run from the project root or adapt for your own project. Each example documents required env vars and how to run it.
+Each example demonstrates a domain-specialized agent pipeline. Domain agents walk through structured stages (discovery, requirements, design, synthesis) and produce enterprise-quality outputs -- not single-shot LLM calls. Copy-paste these scripts or adapt them for your own project.
 
 ## Table of Contents
 
@@ -21,11 +21,13 @@ This directory contains copy-pasteable scripts you can run from the project root
 - [Quick Start](#quick-start)
 - [Usage in Your Project](#usage-in-your-project)
 - [How to Run](#how-to-run)
-- [Available Examples](#available-examples)
-  - [Core](#core)
-  - [Hello World](#hello-world)
-  - [DB Designer](#db-designer)
-  - [React Builder](#react-builder)
+- [Domain Agent Examples](#domain-agent-examples)
+  - [Planning Agent](#planning-agent)
+  - [Requirement Gatherer Agent](#requirement-gatherer-agent)
+  - [DB Designer Agent](#db-designer-agent)
+  - [React Builder Agent](#react-builder-agent)
+- [Core Framework Examples](#core-framework-examples)
+- [Hello World (Template)](#hello-world-template)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -83,6 +85,7 @@ npm install sweagent
 
 ```typescript
 import { createModel, runAgent, defineTool } from 'sweagent';
+import { runPlanningWithResult, processPlanningChat } from 'sweagent';
 ```
 
 ### API keys
@@ -100,7 +103,7 @@ Pass keys via **environment variables** (recommended) or explicitly in config:
 ```typescript
 const model = createModel({
   provider: 'openai', // 'openai' | 'anthropic' | 'google'
-  model: 'gpt-4o-mini', // e.g. gpt-4o, claude-3-haiku-20240307, gemini-1.5-flash
+  model: 'gpt-4o-mini', // e.g. gpt-4o, claude-sonnet-4-20250514, gemini-1.5-flash
   apiKey: process.env.OPENAI_API_KEY,
   temperature: 0.7, // optional
 });
@@ -114,7 +117,7 @@ Each example file includes a **Setup** and **Run** block in its header showing t
 
 ### Interactive launcher (recommended)
 
-Pick a folder (Core, Hello World, DB Designer, React Builder), then an example. You'll be prompted for any inputs (prompt, agent input, etc.):
+Pick a domain agent (Planning, Requirement Gatherer, DB Designer, React Builder) or a framework example (Core, Hello World), then run it. You'll be prompted for any inputs:
 
 ```bash
 npm run example:interactive
@@ -123,6 +126,8 @@ npm run example:interactive
 ### Run a specific example
 
 ```bash
+npm run example -- examples/planning/01-planning-agent.ts
+npm run example -- examples/requirement-gatherer/01-requirement-gatherer-agent.ts
 npm run example -- examples/core/01-basic-model.ts
 npm run example -- examples/hello-world/01-hello-world.ts
 ```
@@ -131,69 +136,137 @@ Always run from the **project root** so that `--env-file=.env` and module resolu
 
 ---
 
-## Available Examples
+## Domain Agent Examples
 
-### Core
-
-| Example                        | Path                                            | Description                                                     |
-| ------------------------------ | ----------------------------------------------- | --------------------------------------------------------------- |
-| 01 - Basic Model               | `examples/core/01-basic-model.ts`               | Simple model invocation (OpenAI).                               |
-| 02 - All Providers             | `examples/core/02-all-providers.ts`             | Same prompt with OpenAI, Anthropic, and Google.                 |
-| 03 - Tool Calling              | `examples/core/03-tool-calling.ts`              | Agent with a calculator tool.                                   |
-| 04 - Agent with Multiple Tools | `examples/core/04-agent-with-multiple-tools.ts` | Agent with search, file write, and calculator tools.            |
-| 05 - Subagents                 | `examples/core/05-subagents.ts`                 | Parent agent delegating to researcher and summarizer subagents. |
-
-**Required**: `OPENAI_API_KEY`. For 02, also `ANTHROPIC_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY`.
-
-**Example output** (01 - Basic Model): A one-sentence explanation of TypeScript from the model, e.g. `"TypeScript is a typed superset of JavaScript that compiles to plain JavaScript."`
-
-**Related**: [03 - Tool Calling](core/03-tool-calling.ts) builds on the model with a single tool; [04 - Agent with Multiple Tools](core/04-agent-with-multiple-tools.ts) shows a full multi-tool agent.
+Each domain agent is a complete pipeline with its own orchestrator, stages, sub-agents, and structured output. These examples demonstrate enterprise-quality planning outputs.
 
 ---
 
-### Hello World
+### Planning Agent
 
-| Example          | Path                                     | Description                         |
-| ---------------- | ---------------------------------------- | ----------------------------------- |
-| 01 - Hello World | `examples/hello-world/01-hello-world.ts` | Minimal agent with a greeting tool. |
+| Example             | Path                                     | Description                                                                                                                     |
+| ------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 01 - Planning Agent | `examples/planning/01-planning-agent.ts` | 4-stage pipeline (discovery, requirements, design, synthesis) producing an implementation-ready markdown plan with 11 sections. |
 
-**Required**: `OPENAI_API_KEY`.
+**Pipeline:** Discovery --> Requirements (4 LLM calls) --> Design (2 LLM calls) --> Synthesis --> LLM Validation
 
-**Example output**: The agent uses the greeting tool and returns a friendly message, e.g. `"Hello, World!"` or a custom name you provide.
+**Env vars**: `PROVIDER`, `MODEL`, `REQUIREMENT` (leave empty for interactive chat mode).
 
-**Related**: [Core 03 - Tool Calling](core/03-tool-calling.ts) for a calculator tool; [Core 04 - Agent with Multiple Tools](core/04-agent-with-multiple-tools.ts) for a richer agent.
+**Run**:
+
+```bash
+# Interactive chat mode -- walk through stages with the agent
+npm run example:planning
+
+# One-shot mode -- provide requirement, get full plan
+REQUIREMENT="Fitness app with workouts and nutrition" npm run example:planning
+```
+
+**Required**: `OPENAI_API_KEY` (or another provider key with `PROVIDER` set).
+
+**How it works**: The planning agent uses `processPlanningChat` for multi-turn interaction or `runPlanningAgent` for one-shot mode. It progresses through four stages with 8+ sequential LLM calls, producing a full markdown implementation plan covering tech stack, data models, API routes, implementation order, edge cases, and testing checklist.
+
+**Output**: Markdown plan with sections: Overview, Tech Stack, Feature Decisions, Data Models, Pages and Routes, Authentication Flow, API Routes, Implementation Details, Execution Plan, Edge Cases, Testing Checklist.
+
+**Related**: [Main README - Planning Pipeline](../README.md#planning-pipeline) | [Domain Agents](../README.md#domain-agents)
 
 ---
 
-### DB Designer
+### Requirement Gatherer Agent
 
-| Example                | Path                                           | Description                                                                                                                                                 |
-| ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 01 - DB Designer Agent | `examples/db-designer/01-db-designer-agent.ts` | Runs the db-designer orchestrator agent to generate a MongoDB schema from natural language requirements. Uses entity-analyzer and schema-refiner subagents. |
+| Example                         | Path                                                             | Description                                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 01 - Requirement Gatherer Agent | `examples/requirement-gatherer/01-requirement-gatherer-agent.ts` | Multi-stage pipeline producing structured JSON requirements with actors, user flows, stories, and module breakdowns. |
+
+**Pipeline:** Discovery --> Requirements --> Design --> Synthesis
+
+**Env vars**: `PROVIDER`, `MODEL`.
+
+**Run**:
+
+```bash
+npm run example:requirement-gatherer
+```
+
+**Required**: `OPENAI_API_KEY` (or another provider key with `PROVIDER` set).
+
+**How it works**: Unlike the Planning module (markdown output), the Requirement Gatherer produces structured JSON data that downstream systems can consume programmatically. It walks through discovery, requirements, design, and synthesis stages to extract typed data.
+
+**Output**: Structured JSON with Actors (with permissions), User Flows (step-by-step sequences), User Stories (with acceptance criteria), Modules (with CRUD operations), Database Design (schemas, relationships), API Design (REST/GraphQL endpoints).
+
+**Related**: [Planning Agent](#planning-agent) for markdown-based planning | [Domain Agents](../README.md#domain-agents)
+
+---
+
+### DB Designer Agent
+
+| Example                | Path                                           | Description                                                                                                                |
+| ---------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 01 - DB Designer Agent | `examples/db-designer/01-db-designer-agent.ts` | Orchestrator agent with `entity-analyzer` and `schema-refiner` sub-agents producing MongoDB schemas from natural language. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`entity-analyzer`, `schema-refiner`) --> Tools (`design_database`, `validate_schema`)
 
 **Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `REQUIREMENT`), `MAX_ITERATIONS`.
 
-**Run**: `npx tsx examples/db-designer/01-db-designer-agent.ts` (from project root).
+**Run**: `npm run example -- examples/db-designer/01-db-designer-agent.ts`
 
 **Required**: `OPENAI_API_KEY`.
 
-**Example output**: The agent produces a MongoDB project schema (modules, fields, relationships) as JSON or text based on your requirement (e.g. "E-commerce: users, orders, products...").
+**How it works**: The orchestrator agent receives a natural-language requirement and delegates to the `entity-analyzer` sub-agent to extract entities and relationships, then to the `schema-refiner` sub-agent to normalize and validate the schema. Tools like `design_database` and `validate_schema` handle the heavy lifting.
+
+**Output**: MongoDB project schema (modules, fields, relationships, indexes, validation rules) as JSON.
+
+**Related**: [React Builder Agent](#react-builder-agent) for another orchestrator pattern | [Domain Agents](../README.md#domain-agents)
 
 ---
 
-### React Builder
+### React Builder Agent
 
-| Example                  | Path                                               | Description                                                                                                                                                    |
-| ------------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 01 - React Builder Agent | `examples/react-builder/01-react-builder-agent.ts` | Runs the react-builder orchestrator agent to generate frontend configuration JSON from a GraphQL schema. Uses graphql-analyzer and config-validator subagents. |
+| Example                  | Path                                               | Description                                                                                                                         |
+| ------------------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 01 - React Builder Agent | `examples/react-builder/01-react-builder-agent.ts` | Orchestrator agent with `graphql-analyzer` and `config-validator` sub-agents producing frontend configuration from GraphQL schemas. |
+
+**Pattern:** Orchestrator --> Sub-Agents (`graphql-analyzer`, `config-validator`) --> Tools (`generate_frontend`, `validate_frontend_config`)
 
 **Env vars**: `PROVIDER`, `MODEL`, `AGENT_INPUT` (or `GRAPHQL_SCHEMA`), `MAX_ITERATIONS`.
 
-**Run**: `npx tsx examples/react-builder/01-react-builder-agent.ts` (from project root).
+**Run**: `npm run example -- examples/react-builder/01-react-builder-agent.ts`
 
 **Required**: `OPENAI_API_KEY`.
 
-**Example output**: The agent produces a frontend app config (app, modules, pages, fields, API hooks) as JSON based on your GraphQL schema.
+**How it works**: The orchestrator agent receives a GraphQL schema and delegates to the `graphql-analyzer` sub-agent to parse the schema structure, then uses `generate_frontend` to produce the config. The `config-validator` sub-agent verifies the output against frontend config schemas.
+
+**Output**: React app config JSON (app, modules, pages, fields, API hooks, branding).
+
+**Related**: [DB Designer Agent](#db-designer-agent) for another orchestrator pattern | [Domain Agents](../README.md#domain-agents)
+
+---
+
+## Core Framework Examples
+
+These examples demonstrate the shared framework that all domain agents are built on: models, tools, agent loops, and sub-agent delegation.
+
+| Example                        | Path                                            | Description                                                               |
+| ------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------- |
+| 01 - Basic Model               | `examples/core/01-basic-model.ts`               | Simple model invocation (OpenAI).                                         |
+| 02 - All Providers             | `examples/core/02-all-providers.ts`             | Same prompt with OpenAI, Anthropic, and Google -- provider-agnostic API.  |
+| 03 - Tool Calling              | `examples/core/03-tool-calling.ts`              | Agent with a calculator tool (Zod schema, validated input).               |
+| 04 - Agent with Multiple Tools | `examples/core/04-agent-with-multiple-tools.ts` | Agent with search, file write, and calculator tools -- minimal tool sets. |
+| 05 - Subagents                 | `examples/core/05-subagents.ts`                 | Parent agent delegating to researcher and summarizer sub-agents.          |
+
+**Required**: `OPENAI_API_KEY`. For 02, also `ANTHROPIC_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY`.
+
+These examples build progressively: model invocation --> tool definition --> agent loop --> sub-agent delegation. This is the same foundation that domain agents use internally.
+
+---
+
+## Hello World (Template)
+
+| Example          | Path                                     | Description                                                                                            |
+| ---------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 01 - Hello World | `examples/hello-world/01-hello-world.ts` | Minimal agent with a greeting tool. Use as a starting point for building your own domain agent module. |
+
+**Required**: `OPENAI_API_KEY`.
 
 ---
 
@@ -227,16 +300,14 @@ For long-running agent calls, the default timeout may be too low. Increase timeo
 
 ## Next Steps
 
-- [Main README](../README.md) – Overview, installation, and full documentation
-- [Getting Started Tutorial](../README.md#getting-started-tutorial) – Step-by-step from model to agent to subagents
-- [API Reference](../README.md#api-reference) – Models, tools, agents, subagents, MCP
-- [Production Modules](../README.md#production-modules) – DB Designer and React Builder
-- [Contributing Guide](../CONTRIBUTING.md) – How to contribute
+- [Main README](../README.md) -- Overview, installation, and full documentation
+- [Domain Agents](../README.md#domain-agents) -- All domain agent pipelines with architecture diagrams
+- [Planning Pipeline](../README.md#planning-pipeline) -- 4-stage planning pipeline for coding agents
+- [Getting Started](../README.md#getting-started) -- Step-by-step from model to agent to planning
+- [API Reference](../README.md#api-reference) -- Models, tools, agents, sub-agents, planning, MCP
+- [Domain Agent Modules](../README.md#domain-agent-modules) -- Detailed module reference for each domain agent
+- [Contributing Guide](../CONTRIBUTING.md) -- How to contribute
 
 <p align="center">
   <a href="../README.md">Back to Main README</a>
-</p>
-
-<p align="center">
-  Made with ❤️ by the CompilersLab team!
 </p>

@@ -1,7 +1,7 @@
 {
   "name": "sweagent",
   "version": "0.0.1",
-  "description": "Multi-provider AI software engineering agent framework with tool calling support",
+  "description": "Enterprise-grade domain-specialized AI agents for software planning — multi-stage pipelines, sub-agent orchestration, and structured outputs for planning, requirements, DB design, and frontend generation",
   "author": {
     "name": "sijeeshmiziha",
     "email": "sijeeshmonbalan@gmail.com",
@@ -36,6 +36,12 @@
     "example": "tsx --env-file=.env",
     "example:interactive": "tsx --env-file=.env examples/run.ts",
     "example:requirement-gatherer": "tsx --env-file=.env examples/requirement-gatherer/01-requirement-gatherer-agent.ts",
+    "example:planning": "tsx --env-file=.env examples/planning/01-planning-agent.ts",
+    "example:data-modeler": "tsx --env-file=.env examples/data-modeler/01-data-modeler-agent.ts",
+    "example:api-designer": "tsx --env-file=.env examples/api-designer/01-api-designer-agent.ts",
+    "example:auth-designer": "tsx --env-file=.env examples/auth-designer/01-auth-designer-agent.ts",
+    "example:frontend-architect": "tsx --env-file=.env examples/frontend-architect/01-frontend-architect-agent.ts",
+    "example:execution-planner": "tsx --env-file=.env examples/execution-planner/01-execution-planner-agent.ts",
     "tokens": "tsx .scripts/token-calculator.ts",
     "tokens:verbose": "tsx .scripts/token-calculator.ts --verbose",
     "tokens:json": "tsx .scripts/token-calculator.ts --json",
@@ -60,6 +66,11 @@
   ],
   "keywords": [
     "ai",
+    "ai-coding",
+    "claude-code",
+    "codex",
+    "cursor",
+    "planning",
     "swe",
     "software-engineering",
     "agents",

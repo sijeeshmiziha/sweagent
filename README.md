@@ -1,10 +1,10 @@
 <p align="center">
   <h1 align="center">sweagent</h1>
   <p align="center">
-    <strong>A multi-provider AI software engineering agent framework with tool calling.</strong>
+    <strong>Enterprise-grade AI agents for every stage of software planning.</strong>
   </p>
   <p align="center">
-    Build intelligent agents that execute tools and integrate with OpenAI, Anthropic, and Google. TypeScript-first, type-safe tools, subagent orchestration, and MCP support.
+    Domain-specialized agent pipelines — Planning, Requirements, DB Design, Frontend — each with dedicated orchestrators, sub-agents, and structured outputs. From discovery to implementation-ready blueprints, in TypeScript.
   </p>
 </p>
 
@@ -18,11 +18,13 @@
 <p align="center">
   <a href="#what-is-sweagent">What is sweagent?</a> •
   <a href="#why-sweagent">Why sweagent?</a> •
+  <a href="#domain-agents">Domain Agents</a> •
+  <a href="#planning-pipeline">Planning Pipeline</a> •
   <a href="#installation">Installation</a> •
-  <a href="#getting-started-tutorial">Tutorial</a> •
+  <a href="#getting-started">Getting Started</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#api-reference">API Reference</a> •
-  <a href="#production-modules">Modules</a> •
+  <a href="#domain-agent-modules">Modules</a> •
   <a href="#examples">Examples</a> •
   <a href="#contributing">Contributing</a>
 </p>
@@ -33,13 +35,14 @@
 
 - [What is sweagent?](#what-is-sweagent)
 - [Why sweagent?](#why-sweagent)
+- [Domain Agents](#domain-agents)
+- [Planning Pipeline](#planning-pipeline)
 - [Features](#features)
 - [Installation](#installation)
-- [Getting Started Tutorial](#getting-started-tutorial)
+- [Getting Started](#getting-started)
 - [Architecture](#architecture)
-- [Engineering Deep Dive](#engineering-deep-dive)
 - [API Reference](#api-reference)
-- [Production Modules](#production-modules)
+- [Domain Agent Modules](#domain-agent-modules)
 - [Examples](#examples)
 - [Configuration Reference](#configuration-reference)
 - [FAQ](#faq)
@@ -51,70 +54,361 @@
 
 ## What is sweagent?
 
-**sweagent** is a multi-provider AI software engineering agent framework for TypeScript and Node.js. It gives you a single, consistent API to build agents that call tools, delegate to subagents, and run across OpenAI, Anthropic, and Google—with no provider lock-in.
+AI coding agents -- Claude Code, Codex, Cursor -- are powerful executors, but they fail at planning. Hand one a vague requirement and it guesses a tech stack, skips data modeling, forgets auth, and produces half-finished code. Enterprise teams need the same rigor from AI that they expect from senior engineers: structured discovery, explicit requirements, deliberate design, and traceable decisions.
 
-The framework is built around three pillars: **models** (unified provider abstraction), **tools** (Zod-validated, type-safe tool definitions), and **agents** (an iterative loop that invokes the model, executes tool calls, and feeds results back until the task is done). You can add **subagents** so a parent agent delegates subtasks to specialized child agents, and plug in **MCP** (Model Context Protocol) servers for external capabilities. Production-ready modules like **DB Designer** (MongoDB schema from natural language) and **React Builder** (frontend config from GraphQL) show how to orchestrate tools and subagents for real workflows.
+**sweagent** is a library of **domain-specialized AI agent pipelines** that handle every stage of software planning at professional quality. Each domain -- planning, requirements, database design, frontend configuration -- gets its own **orchestrator agent** with dedicated **sub-agents**, **tools**, and **multi-stage pipelines** that produce structured, reviewable outputs.
 
-Whether you are prototyping a coding assistant or shipping a multi-step AI pipeline, sweagent keeps the same mental model: create a model, define tools, run an agent. All provider SDKs are included; set your API keys and go.
+| Domain           | Orchestrator Agent            | Sub-Agents                             | Output                                            |
+| ---------------- | ----------------------------- | -------------------------------------- | ------------------------------------------------- |
+| **Planning**     | `runPlanningAgent`            | --                                     | Implementation-ready markdown plan                |
+| **Requirements** | `runRequirementGathererAgent` | --                                     | Structured JSON (actors, flows, stories, modules) |
+| **DB Design**    | `runDbDesignerAgent`          | `entity-analyzer`, `schema-refiner`    | MongoDB schemas with relationships                |
+| **Frontend**     | `runReactBuilderAgent`        | `graphql-analyzer`, `config-validator` | React app config from GraphQL                     |
+
+Each pipeline walks through structured stages -- discovery, analysis, design, synthesis -- not a single LLM call. The result is a professional-grade artifact that a coding agent can execute step-by-step, or that a human architect can review and approve.
 
 ```typescript
-import { createModel, runAgent, defineTool } from 'sweagent';
-import { z } from 'zod';
+import { runPlanningWithResult } from 'sweagent';
 
-const model = createModel({ provider: 'openai', model: 'gpt-4o-mini' });
-const greetTool = defineTool({
-  name: 'greet',
-  description: 'Greet someone',
-  input: z.object({ name: z.string() }),
-  handler: async ({ name }) => ({ message: `Hello, ${name}!` }),
+// Generate an implementation-ready plan -- validated by an LLM judge
+const { planning, plan } = await runPlanningWithResult({
+  input: 'Task manager app with user auth, task CRUD, assignments, and a dashboard',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-const result = await runAgent({
-  model,
-  tools: [greetTool],
-  systemPrompt: 'You are a helpful assistant.',
-  input: 'Greet Alice',
-});
-console.log(result.output);
+if (planning) {
+  console.log('Plan is implementation-ready. Hand it to your coding agent.');
+  console.log(plan); // Full markdown blueprint
+}
 ```
+
+TypeScript-first, built on the Vercel AI SDK, ships with all provider SDKs (OpenAI, Anthropic, Google). Set your API keys and go.
 
 ---
 
 ## Why sweagent?
 
-Long-running AI agents face a core challenge: they work in discrete sessions, and each new session starts with no memory of the last. That leads to agents trying to do too much in one go (and leaving half-finished work), or declaring the job done too early. We designed sweagent so you can build **effective harnesses** for such agents.
+### 1. Domain-specialized agents, not generic wrappers
 
-The design follows a two-fold pattern. First, **initializer-style setup**: scaffold the environment with clear artifacts—feature lists, progress files, init scripts—so every run knows what “done” looks like and what’s left to do. Second, **incremental coding agents**: each session is prompted to make bounded progress, then leave the codebase in a clean, documented state (e.g. via commits and progress updates). That way the next session can read git history and progress files, get its bearings quickly, and continue without re-discovering the project.
+Each module is a self-contained agent pipeline purpose-built for its domain. The DB Designer doesn't reuse the Planning Agent's prompts -- it has its own `entity-analyzer` and `schema-refiner` sub-agents, its own tools (`design_database`, `validate_schema`), and its own output schema. The React Builder has a `graphql-analyzer` and `config-validator`. Every domain gets the specialized treatment it deserves.
 
-sweagent’s architecture reflects this. **Modular tools** let you split capabilities into small, testable units. **Subagent delegation** lets a parent agent hand off analysis or refinement to specialized children. **Structured orchestration prompts** (as in the DB Designer and React Builder modules) spell out when to analyze, when to generate, and when to validate. **Typed schemas** (Zod everywhere) keep tool inputs and outputs predictable and safe. Under the hood, we use a **provider adapter** over the Vercel AI SDK so you can swap OpenAI, Anthropic, or Google without changing your agent code, and a **layered error hierarchy** so failures are easy to trace and handle.
+### 2. Multi-stage pipelines with structured outputs
+
+Every domain agent progresses through deliberate stages -- discovery, requirements, design, synthesis -- with dedicated LLM calls at each step. The Planning pipeline makes 8+ sequential LLM calls across 4 stages. The Requirement Gatherer produces structured JSON with actors, user flows, stories, and module breakdowns. No single-shot prompt engineering; each stage builds on the last and produces traceable, reviewable intermediate results.
+
+### 3. Sub-agent orchestration for complex domains
+
+When a domain is too complex for a single agent, sweagent delegates to specialized sub-agents. The DB Designer orchestrator spawns an `entity-analyzer` to extract entities and relationships, then a `schema-refiner` to normalize and validate the schema. The React Builder uses a `graphql-analyzer` to parse the schema and a `config-validator` to verify the output. Sub-agents run in isolation with their own context, tools, and models -- then return condensed results to the orchestrator.
+
+### 4. Enterprise-quality output, not bullet points
+
+Plans include tech stack decisions, data models with field-level detail, API routes with request/response shapes, phased implementation order, edge cases, and testing checklists. Requirement documents include actors with permissions, user flows with steps, user stories with acceptance criteria, and module breakdowns with CRUD operations. DB schemas include field types, relationships, indexes, and validation rules. These are blueprints, not summaries.
+
+### 5. Provider-agnostic model layer
+
+Your agent code stays the same whether you're using GPT-4o, Claude, or Gemini. One `createModel()` call, one interface, zero provider lock-in. Switch models in config, not in code.
+
+### 6. Incremental progress across sessions
+
+Long-running agents fail when they lose context. sweagent encodes patterns for structured progress tracking: feature lists with pass/fail status, progress files, and clean-state principles so each session picks up exactly where the last one left off.
+
+---
+
+## Domain Agents
+
+sweagent ships with four production domain agents and a template module. Each is a complete pipeline with its own orchestrator, tools, sub-agents, and output format.
+
+```mermaid
+graph TB
+  subgraph DomainAgents[Domain Agent Modules]
+    subgraph PlanningDomain[Planning Agent]
+      PA_Orch["Orchestrator"]
+      PA_Disc["Discovery Stage"]
+      PA_Req["Requirements Stage"]
+      PA_Des["Design Stage"]
+      PA_Syn["Synthesis Stage"]
+      PA_Val["LLM Validator"]
+      PA_Orch --> PA_Disc --> PA_Req --> PA_Des --> PA_Syn --> PA_Val
+    end
+
+    subgraph ReqDomain[Requirement Gatherer Agent]
+      RG_Orch["Orchestrator"]
+      RG_Disc["Discovery"]
+      RG_Req["Requirements"]
+      RG_Des["Design"]
+      RG_Syn["Synthesis"]
+      RG_Orch --> RG_Disc --> RG_Req --> RG_Des --> RG_Syn
+    end
+
+    subgraph DbDomain[DB Designer Agent]
+      DB_Orch["Orchestrator"]
+      DB_EA["entity-analyzer"]
+      DB_SR["schema-refiner"]
+      DB_T1["design_database"]
+      DB_T2["validate_schema"]
+      DB_Orch --> DB_EA
+      DB_Orch --> DB_SR
+      DB_Orch --> DB_T1
+      DB_Orch --> DB_T2
+    end
+
+    subgraph ReactDomain[React Builder Agent]
+      RB_Orch["Orchestrator"]
+      RB_GA["graphql-analyzer"]
+      RB_CV["config-validator"]
+      RB_T1["generate_frontend"]
+      RB_T2["validate_frontend_config"]
+      RB_Orch --> RB_GA
+      RB_Orch --> RB_CV
+      RB_Orch --> RB_T1
+      RB_Orch --> RB_T2
+    end
+  end
+
+  subgraph SharedFramework[Shared Framework Layer]
+    Models["Model Abstraction"]
+    ToolFW["Tool Framework"]
+    AgentLoop["Agent Loop"]
+    SubAgentFW["Sub-Agent Orchestration"]
+  end
+
+  subgraph Providers[AI Providers]
+    OpenAI["OpenAI"]
+    Anthropic["Anthropic"]
+    Google["Google"]
+  end
+
+  PlanningDomain --> SharedFramework
+  ReqDomain --> SharedFramework
+  DbDomain --> SharedFramework
+  ReactDomain --> SharedFramework
+  SharedFramework --> Providers
+```
+
+### Planning Agent
+
+Turns a natural-language project description into an implementation-ready markdown plan through 4 stages and 8+ LLM calls. Covers tech stack, data models, API routes, implementation order, edge cases, and testing checklists. Optional LLM validation judges completeness.
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+
+const { planning, plan } = await runPlanningWithResult({
+  input: 'E-commerce: users, products, cart, checkout, admin dashboard',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+// planning === true means the plan passed all validation criteria
+// plan is the full markdown blueprint
+```
+
+**Stages:** Discovery, Requirements (4 LLM calls), Design (2 LLM calls), Synthesis | **Output:** Markdown | **Modes:** One-shot, validated, interactive chat
+
+---
+
+### Requirement Gatherer Agent
+
+Produces structured JSON requirements -- not prose. Extracts actors with permissions, user flows with step-by-step sequences, user stories with acceptance criteria, and module breakdowns with CRUD operations, database schemas, and API designs.
+
+```typescript
+import { runRequirementGathererAgent } from 'sweagent';
+
+const result = await runRequirementGathererAgent({
+  input: 'Project management tool with teams, Kanban boards, and time tracking',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output contains structured JSON: actors, flows, stories, modules
+```
+
+**Stages:** Discovery, Requirements, Design, Synthesis | **Output:** Structured JSON | **Schemas:** Actors, Flows, Stories, Modules, Database, API
+
+---
+
+### DB Designer Agent
+
+An orchestrator agent that delegates to specialized sub-agents for entity analysis and schema refinement. Produces MongoDB-style schemas with modules, fields, relationships, indexes, and validation rules.
+
+```typescript
+import { runDbDesignerAgent } from 'sweagent';
+
+const result = await runDbDesignerAgent({
+  input: 'E-commerce: users, orders, products. Admins manage products.',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output contains the full database schema
+```
+
+**Sub-agents:** `entity-analyzer` (extracts entities and relationships), `schema-refiner` (normalizes and validates) | **Tools:** `design_database`, `design_database_pro`, `redesign_database`, `validate_schema` | **Output:** MongoDB schema JSON
+
+---
+
+### React Builder Agent
+
+Generates complete frontend application configuration from a GraphQL schema. A `graphql-analyzer` sub-agent parses the schema structure, and a `config-validator` sub-agent verifies the output. Produces app config, modules, pages, fields, and API hooks.
+
+```typescript
+import { runReactBuilderAgent } from 'sweagent';
+
+const result = await runReactBuilderAgent({
+  input: 'GraphQL schema: type User { id: ID! name: String! } type Task { ... }',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output contains frontend config JSON
+```
+
+**Sub-agents:** `graphql-analyzer` (schema parsing), `config-validator` (output verification) | **Tools:** `generate_frontend`, `generate_feature_breakdown`, `validate_frontend_config` | **Output:** React app config JSON
+
+---
+
+### Hello World (Template)
+
+Minimal example module with a single greeting tool. Use as a starting point when building your own domain agent module.
+
+```typescript
+import { createModel, runAgent, helloWorldTool } from 'sweagent';
+
+const result = await runAgent({
+  model: createModel({ provider: 'openai', model: 'gpt-4o-mini' }),
+  tools: [helloWorldTool],
+  systemPrompt: 'You are helpful.',
+  input: 'Say hello',
+});
+```
+
+---
+
+## Planning Pipeline
+
+The planning module is the centerpiece for AI coding agents. It turns a natural-language project description into a structured, implementation-ready markdown plan through four stages.
+
+### How it works
+
+```mermaid
+flowchart LR
+  Input["User Requirement"] --> Discovery["Discovery"]
+  Discovery --> Requirements["Requirements"]
+  Requirements --> Design["Design"]
+  Design --> Synthesis["Synthesis"]
+  Synthesis --> Plan["plan.md"]
+  Plan --> Validate["LLM Validator"]
+  Validate --> Output["planning: bool, plan: string"]
+```
+
+### Stages
+
+| Stage            | What it produces                                   | Sections                                                            |
+| ---------------- | -------------------------------------------------- | ------------------------------------------------------------------- |
+| **Discovery**    | Understands the project, asks clarifying questions | Project overview                                                    |
+| **Requirements** | 4 sequential LLM calls to flesh out the spec       | Tech stack, feature decisions, data models, pages/routes, auth flow |
+| **Design**       | 2 sequential LLM calls for technical design        | API routes, implementation details                                  |
+| **Synthesis**    | Assembles the final plan                           | Implementation order, edge cases, testing checklist                 |
+
+### Output
+
+The plan is a markdown document with these sections:
+
+- **Overview** — project scope and goals
+- **Tech Stack** — languages, frameworks, database, auth approach
+- **Feature Decisions** — what to build and what to defer
+- **Data Models** — schemas, relationships, fields
+- **Pages and Routes** — frontend structure
+- **Authentication Flow** — auth strategy and implementation
+- **API Routes** — endpoints, methods, request/response shapes
+- **Implementation Details** — architecture decisions, file structure
+- **Execution Plan** — phased implementation order
+- **Edge Cases** — error handling, boundary conditions
+- **Testing Checklist** — what to verify at each phase
+
+### Two modes
+
+**One-shot mode** — pass a requirement, get a plan:
+
+```typescript
+import { runPlanningAgent } from 'sweagent';
+
+const result = await runPlanningAgent({
+  input: 'Fitness app with workouts, nutrition tracking, and social features',
+  model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+});
+console.log(result.output); // Full plan markdown
+```
+
+**With validation** — run the plan through an LLM judge that checks completeness:
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+
+const { planning, plan } = await runPlanningWithResult({
+  input: 'Fitness app with workouts, nutrition tracking, and social features',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+// planning === true means the plan passed all validation criteria
+```
+
+**Interactive chat mode** — multi-turn conversation where you refine the plan:
+
+```typescript
+import { processPlanningChat } from 'sweagent';
+import type { PlanningContext } from 'sweagent';
+
+let context: PlanningContext | null = null;
+
+// Turn 1: describe the project
+const turn1 = await processPlanningChat('Build a task manager with teams', context, {
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+context = turn1.context;
+console.log(turn1.message); // Assistant asks clarifying questions
+console.log(turn1.pendingQuestions); // ["What auth provider?", ...]
+
+// Turn 2: answer and advance
+const turn2 = await processPlanningChat('Use NextAuth with GitHub OAuth', context, {
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+context = turn2.context;
+
+// Continue until turn.planMarkdown is set (plan complete)
+```
+
+### Validation criteria
+
+The LLM validator (`validatePlanForCodingAgent`) checks that the plan includes:
+
+1. Clear project overview and scope
+2. Tech stack specified (languages, frameworks, database, auth)
+3. Implementation order or phased steps
+4. Concrete actionable steps (files, routes, APIs, or models)
+5. Data model, authentication, and API surface addressed
 
 ---
 
 ## Features
 
-| Feature                    | Description                                                                                                          |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Multi-Provider**         | Unified API for OpenAI (GPT-4o), Anthropic (Claude), and Google (Gemini). One codebase, switch providers via config. |
-| **Type-Safe Tools**        | Define tools with Zod schemas; full type inference and validation before execution.                                  |
-| **Agent Framework**        | Iterative agent loop with tool calling, step callbacks, and configurable max iterations.                             |
-| **Subagent Orchestration** | Parent agents delegate to child agents via tools; optional tool inheritance and isolated models.                     |
-| **MCP Protocol**           | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation.                |
-| **Production Modules**     | DB Designer (MongoDB schema from requirements), React Builder (frontend config from GraphQL).                        |
-| **Vision**                 | Image inputs supported via `model.generateVision()` for vision-capable models.                                       |
-| **Zero Extra Deps**        | All provider SDKs included; set API keys and run.                                                                    |
+| Feature                     | Description                                                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **4 Domain Agent Modules**  | Planning, Requirement Gatherer, DB Designer, React Builder -- each a self-contained pipeline with its own orchestrator, tools, sub-agents, and output format.                        |
+| **Multi-Stage Pipelines**   | Every domain agent progresses through structured stages (discovery, requirements, design, synthesis) with dedicated LLM calls at each step. No single-shot prompts.                  |
+| **Sub-Agent Orchestration** | Complex domains delegate to specialized sub-agents (`entity-analyzer`, `schema-refiner`, `graphql-analyzer`, `config-validator`) that run in isolation and return condensed results. |
+| **Plan Validation**         | LLM-based judge validates that planning output meets all criteria for a coding agent to start implementing.                                                                          |
+| **Structured Outputs**      | Requirements as typed JSON (actors, flows, stories, modules). DB schemas with field-level detail. Frontend configs with pages, hooks, and branding. Plans with 11 sections.          |
+| **Multi-Provider Models**   | Unified API for OpenAI, Anthropic, and Google. One `createModel()` call, zero provider lock-in.                                                                                      |
+| **Type-Safe Tools**         | Define tools with Zod schemas; full type inference and validation before execution. Minimal, workflow-oriented tool sets.                                                            |
+| **Agent Framework**         | Iterative agent loop with tool calling, step callbacks, and configurable max iterations.                                                                                             |
+| **MCP Protocol**            | Connect to Model Context Protocol servers over HTTP or stdio. Lazy connection, typed tool invocation.                                                                                |
+| **Vision**                  | Image inputs via `model.generateVision()` for vision-capable models.                                                                                                                 |
+| **Zero Extra Deps**         | All provider SDKs (OpenAI, Anthropic, Google) included. Set API keys and run.                                                                                                        |
 
 ---
 
 ## Installation
 
-### Step 1: Prerequisites
+### Prerequisites
 
 - **Node.js** >= 18.0.0
 - **npm** >= 8.0.0 (or yarn, pnpm, bun)
 
-### Step 2: Install the package
-
-**Using the package in your project:**
+### Install
 
 ```bash
 npm install sweagent
@@ -128,9 +422,9 @@ pnpm add sweagent
 bun add sweagent
 ```
 
-All AI provider SDKs (OpenAI, Anthropic, Google) are included; no extra packages are required.
+All AI provider SDKs (OpenAI, Anthropic, Google) are included; no extra packages needed.
 
-**Contributing from source:**
+### From source
 
 ```bash
 git clone https://github.com/sijeeshmiziha/sweagent.git
@@ -138,9 +432,9 @@ cd sweagent
 npm install
 ```
 
-### Step 3: Environment setup
+### Environment setup
 
-Create a `.env` file in your project root (or export variables in your shell):
+Create a `.env` file in your project root:
 
 ```bash
 # At least one provider API key is required
@@ -149,47 +443,31 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_GENERATIVE_AI_API_KEY=...
 ```
 
-### Step 4: Verify installation
-
-Run the hello-world example to confirm everything works.
-
-**If you installed the package:** create a file `test-agent.mjs` (or `test-agent.ts` with tsx):
-
-```javascript
-import { createModel, runAgent, helloWorldTool } from 'sweagent';
-const model = createModel({ provider: 'openai', model: 'gpt-4o-mini' });
-const result = await runAgent({
-  model,
-  tools: [helloWorldTool],
-  systemPrompt: 'You are helpful.',
-  input: 'Say hello',
-});
-console.log(result.output);
-```
-
-Run it with `node --env-file=.env test-agent.mjs` (or `npx tsx --env-file=.env test-agent.ts`).
-
-**If you cloned the repo:**
+### Verify
 
 ```bash
+# If installed as a package
+echo 'import { createModel, runAgent, helloWorldTool } from "sweagent";
+const model = createModel({ provider: "openai", model: "gpt-4o-mini" });
+const result = await runAgent({ model, tools: [helloWorldTool], systemPrompt: "You are helpful.", input: "Say hello" });
+console.log(result.output);' > test.mjs
+node --env-file=.env test.mjs
+
+# If cloned from source
 npm run example -- examples/hello-world/01-hello-world.ts
 ```
 
 ---
 
-## Getting Started Tutorial
-
-Progress from a simple model call to a full agent with tools and subagents.
+## Getting Started
 
 ### Level 1: Model invocation
-
-Create a model and get a completion:
 
 ```typescript
 import { createModel } from 'sweagent';
 
 const model = createModel({
-  provider: 'openai',
+  provider: 'openai', // 'openai' | 'anthropic' | 'google'
   model: 'gpt-4o-mini',
   temperature: 0.7,
 });
@@ -200,9 +478,7 @@ const response = await model.invoke([
 console.log(response.text);
 ```
 
-### Level 2: Custom tools
-
-Define a type-safe tool with Zod:
+### Level 2: Define tools
 
 ```typescript
 import { defineTool } from 'sweagent';
@@ -222,8 +498,6 @@ const calculatorTool = defineTool({
 ```
 
 ### Level 3: Agent loop
-
-Run an agent that can call your tools:
 
 ```typescript
 import { runAgent, createModel, defineTool, createToolSet } from 'sweagent';
@@ -249,8 +523,6 @@ console.log(result.output);
 
 ### Level 4: Subagents
 
-Define subagents and expose them as tools to a parent agent:
-
 ```typescript
 import {
   defineSubagent,
@@ -260,13 +532,15 @@ import {
   createToolSet,
 } from 'sweagent';
 
+const model = createModel({ provider: 'openai', model: 'gpt-4o-mini' });
+
 const researcher = defineSubagent({
   name: 'researcher',
   description: 'Research a topic and return a short summary',
   systemPrompt: 'You are a researcher. Answer concisely.',
 });
 const subagentTools = createSubagentToolSet([researcher], { parentModel: model });
-const tools = createToolSet({ ...otherTools, ...subagentTools });
+const tools = createToolSet({ ...subagentTools });
 
 const result = await runAgent({
   model,
@@ -277,25 +551,23 @@ const result = await runAgent({
 });
 ```
 
-### Level 5: Production module (DB Designer)
+### Level 5: Planning pipeline
 
-Use the DB Designer orchestrator to generate a MongoDB schema from natural language:
+Generate an implementation plan for a coding agent:
 
 ```typescript
-import { runDbDesignerAgent } from 'sweagent';
+import { runPlanningWithResult } from 'sweagent';
 
-const result = await runDbDesignerAgent({
-  input:
-    'E-commerce: users, orders, products. Admins manage products. Users place orders and have a profile.',
+const { planning, plan } = await runPlanningWithResult({
+  input: 'E-commerce site: users, products, cart, checkout, admin dashboard',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
-  maxIterations: 15,
 });
-console.log(result.output);
+
+console.log('Ready for coding agent:', planning);
+console.log(plan);
 ```
 
 ### Level 6: MCP integration
-
-Extend `BaseMcpClient` to call MCP tools (e.g. HTTP or stdio server):
 
 ```typescript
 import { BaseMcpClient } from 'sweagent';
@@ -317,37 +589,96 @@ const result = await client.callTool('tool_name', { arg: 'value' });
 ```mermaid
 graph TB
   subgraph Client[Client Application]
-    App[Your App]
+    App["Your App / Coding Agent"]
   end
 
-  subgraph Sweagent[sweagent]
-    Models[Models]
-    Tools[Tools]
-    Agents[Agent Loop]
-    Subagents[Subagents]
-    Modules[DB Designer, React Builder]
+  subgraph DomainAgents[Domain Agent Modules]
+    Planning["Planning Agent"]
+    ReqGatherer["Requirement Gatherer Agent"]
+    DbDesigner["DB Designer Agent"]
+    ReactBuilder["React Builder Agent"]
+  end
+
+  subgraph SubAgents[Specialized Sub-Agents]
+    EA["entity-analyzer"]
+    SR["schema-refiner"]
+    GA["graphql-analyzer"]
+    CV["config-validator"]
+  end
+
+  subgraph Framework[Shared Framework]
+    Models["Model Abstraction"]
+    ToolFW["Tool Framework"]
+    AgentLoop["Agent Loop"]
+    SubAgentOrch["Sub-Agent Orchestration"]
+    MCP["MCP Protocol"]
   end
 
   subgraph Providers[AI Providers]
-    OpenAI[OpenAI]
-    Anthropic[Anthropic]
-    Google[Google]
+    OpenAI["OpenAI"]
+    Anthropic["Anthropic"]
+    Google["Google"]
   end
 
-  App --> Models
-  App --> Tools
-  App --> Agents
-  App --> Modules
-  Agents --> Models
-  Agents --> Tools
-  Agents --> Subagents
-  Modules --> Agents
-  Models --> OpenAI
-  Models --> Anthropic
-  Models --> Google
+  App --> DomainAgents
+  Planning --> Framework
+  ReqGatherer --> Framework
+  DbDesigner --> EA
+  DbDesigner --> SR
+  DbDesigner --> Framework
+  ReactBuilder --> GA
+  ReactBuilder --> CV
+  ReactBuilder --> Framework
+  EA --> Framework
+  SR --> Framework
+  GA --> Framework
+  CV --> Framework
+  Framework --> Providers
 ```
 
-### Agent execution flow
+### Domain agent pipeline flow
+
+Each domain agent follows a structured pipeline. The Planning Agent is representative:
+
+```mermaid
+flowchart LR
+  Input["User Requirement"] --> Discovery["Discovery Stage"]
+  Discovery --> Requirements["Requirements Stage"]
+  Requirements --> Design["Design Stage"]
+  Design --> Synthesis["Synthesis Stage"]
+  Synthesis --> Plan["Structured Output"]
+  Plan --> Validate["LLM Validator"]
+  Validate --> Output["Validated Result"]
+```
+
+### Orchestrator with sub-agents
+
+Domain agents like DB Designer and React Builder delegate to specialized sub-agents:
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Orchestrator
+  participant Model
+  participant Tools
+  participant SubAgent1 as entity-analyzer
+  participant SubAgent2 as schema-refiner
+
+  User->>Orchestrator: Natural-language requirement
+  Orchestrator->>Model: Messages + Domain Tools
+  Model-->>Orchestrator: Tool call design_database
+  Orchestrator->>Tools: Execute design_database
+  Tools-->>Orchestrator: Initial schema
+  Orchestrator->>SubAgent1: Analyze entities and relationships
+  SubAgent1-->>Orchestrator: Structured entity analysis
+  Orchestrator->>SubAgent2: Refine and validate schema
+  SubAgent2-->>Orchestrator: Validated schema
+  Orchestrator->>Model: Compile final output
+  Model-->>Orchestrator: Final result
+  Orchestrator-->>User: Production-grade schema
+```
+
+### Agent execution loop
 
 ```mermaid
 sequenceDiagram
@@ -370,80 +701,46 @@ sequenceDiagram
   end
 ```
 
-### Subagent delegation
-
-```mermaid
-sequenceDiagram
-  participant User
-  participant ParentAgent
-  participant ParentModel
-  participant SubagentTool
-  participant ChildAgent
-  participant ChildModel
-
-  User->>ParentAgent: Input
-  ParentAgent->>ParentModel: Messages + Tools (incl. subagent_*)
-  ParentModel-->>ParentAgent: Tool call subagent_researcher
-  ParentAgent->>SubagentTool: Execute prompt
-  SubagentTool->>ChildAgent: runAgent(systemPrompt, prompt)
-  ChildAgent->>ChildModel: Messages
-  ChildModel-->>ChildAgent: Response
-  ChildAgent-->>SubagentTool: output
-  SubagentTool-->>ParentAgent: Tool result
-  ParentAgent->>ParentModel: Append tool result, continue
-```
-
-### Module orchestrator (DB Designer)
-
-```mermaid
-flowchart LR
-  Input[User Requirement] --> Analyze[entity-analyzer subagent]
-  Analyze --> Design[design_database tool]
-  Design --> Refine[schema-refiner subagent]
-  Refine --> Validate[validate_schema tool]
-  Validate --> Output[Schema JSON]
-```
-
 ---
 
 ## Engineering Deep Dive
 
-### Problem decomposition: long-running agents
+### The problem: long-running coding agents
 
-Agents that work across many steps or sessions tend to fail in two ways: they either try to do too much in one shot (and leave partial, undocumented work), or they assume the project is done too early. To make progress across sessions, each run needs a way to **get up to speed** quickly and to **leave a clean state** for the next run. That implies structured artifacts: feature lists, progress files, and clear prompts that say “do one thing, then commit and document.”
+Coding agents that work across many steps or sessions fail in two ways: they try to do too much in one shot (leaving partial, undocumented work), or they declare the job done too early. Each new session starts with no memory of the last. To make progress across sessions, each run needs a way to get up to speed quickly and leave a clean state for the next run.
 
 ### Incremental progress pattern
 
-We structure agents so that each session does **bounded work**: one feature or one clear subtask. The agent is prompted to update a progress file and to commit (or at least document) what it did. The next session reads progress and git history, chooses the next unfinished item, and continues. That avoids “one-shotting” the whole project and reduces the chance of the agent declaring victory prematurely.
+Each session does bounded work: one feature or one clear subtask. The agent updates a progress file and commits what it did. The next session reads progress and git history, chooses the next unfinished item, and continues. This avoids one-shotting the whole project and reduces premature completion.
 
 ### Feature list approach
 
-A structured list of requirements (e.g. in JSON) with a status per item gives the agent a clear definition of “done.” Agents are instructed to only mark items passing after verification. That keeps scope explicit and makes it easier to resume across context windows.
+A structured list of requirements (e.g. in JSON) with a status per item gives the agent a clear definition of "done." Agents only mark items passing after verification, keeping scope explicit and making it easy to resume across context windows.
 
 ### Clean state principle
 
-Every session should end with code that is buildable, documented, and easy to continue from. In practice that means: no half-implemented features left broken, no stray debug code, and clear commit messages or progress notes. The framework doesn’t enforce this by itself; the orchestration prompts (e.g. in DB Designer and React Builder) encode these expectations.
+Every session should end with code that is buildable, documented, and easy to continue from. No half-implemented features, no stray debug code, clear commit messages or progress notes. The orchestration prompts in production modules encode these expectations.
 
-### Error hierarchy design
+### Error hierarchy
 
-Errors are organized so you can handle them by type and preserve cause chains:
+| Class               | When                                             |
+| ------------------- | ------------------------------------------------ |
+| **LibraryError**    | Base; all others extend it.                      |
+| **ModelError**      | Model creation or invoke failed.                 |
+| **ToolError**       | Tool not found or tool execution failed.         |
+| **ValidationError** | Zod validation failed.                           |
+| **AgentError**      | Agent reached max iterations without completing. |
+| **SubagentError**   | Subagent config or run failed.                   |
 
-- **LibraryError** – base for all library errors
-- **ModelError** – model invocation failures (provider, API key, etc.)
-- **ToolError** – tool execution or “tool not found”
-- **ValidationError** – schema validation failures
-- **AgentError** – agent hit max iterations without finishing
-- **SubagentError** – subagent configuration or execution failure
-
-Each can wrap a `cause`. Use try/catch and `instanceof` to branch on the right level.
+All accept an optional `cause` for chaining.
 
 ### Provider adapter pattern
 
-Models are created via `createModel({ provider, model, ... })`. Under the hood, a shared **AI SDK adapter** (`createAIModel`) wraps the Vercel AI SDK’s `generateText` and normalizes messages, tool schemas, and responses. Each provider (OpenAI, Anthropic, Google) has a thin factory that passes the correct `LanguageModel` into this adapter. That keeps provider-specific logic in one place and keeps the rest of the stack provider-agnostic.
+Models are created via `createModel({ provider, model, ... })`. A shared AI SDK adapter wraps the Vercel AI SDK's `generateText` and normalizes messages, tool schemas, and responses. Each provider has a thin factory that passes the correct `LanguageModel` into this adapter. Provider-specific logic stays in one place; everything else is provider-agnostic.
 
 ### Tool execution safety
 
-Before any tool runs, inputs are validated with Zod. Invalid input produces a **ToolError** with the parse error; the handler is never called with bad data. Handler errors are caught and rethrown as **ToolError** with the original error as cause. The agent loop receives structured tool results (including error payloads) so the model can see failures and retry or adjust.
+Inputs are validated with Zod before any tool runs. Invalid input produces a **ToolError** with the parse error; the handler is never called with bad data. Handler errors are caught and rethrown as **ToolError** with the original error as cause. The agent loop receives structured tool results (including error payloads) so the model can see failures and retry or adjust.
 
 ---
 
@@ -453,16 +750,16 @@ All public APIs are exported from the main package: `import { ... } from 'sweage
 
 ### Models
 
-**createModel(config)** – Create a model instance for the given provider.
+**createModel(config)** — Create a model instance.
 
 ```typescript
 import { createModel } from 'sweagent';
 
 const model = createModel({
   provider: 'openai' | 'anthropic' | 'google',
-  model: string,            // e.g. 'gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet-20241022'
-  apiKey?: string,          // Uses env var by default (OPENAI_API_KEY, etc.)
-  temperature?: number,     // 0–2, default varies by provider
+  model: string,            // e.g. 'gpt-4o', 'claude-sonnet-4-20250514'
+  apiKey?: string,          // Uses env var by default
+  temperature?: number,
   maxOutputTokens?: number,
   baseUrl?: string,
 });
@@ -473,11 +770,11 @@ const response = await model.invoke(messages, { tools });
 
 **Supported models (examples):**
 
-| Provider  | Models                                                 |
-| --------- | ------------------------------------------------------ |
-| OpenAI    | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`                 |
-| Anthropic | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229` |
-| Google    | `gemini-1.5-pro`, `gemini-1.5-flash`                   |
+| Provider  | Models                                               |
+| --------- | ---------------------------------------------------- |
+| OpenAI    | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`               |
+| Anthropic | `claude-sonnet-4-20250514`, `claude-3-opus-20240229` |
+| Google    | `gemini-1.5-pro`, `gemini-1.5-flash`                 |
 
 **Vision:** `model.generateVision(prompt, images, options)` for image inputs.
 
@@ -485,7 +782,7 @@ const response = await model.invoke(messages, { tools });
 
 ### Tools
 
-**defineTool(config)** – Define a type-safe tool with Zod schema and handler.
+**defineTool(config)** — Define a type-safe tool with Zod schema and handler.
 
 ```typescript
 import { defineTool } from 'sweagent';
@@ -499,21 +796,21 @@ const tool = defineTool({
 });
 ```
 
-**createToolSet(tools)** – Build a record of tools for the agent (key = tool name).
+**createToolSet(tools)** — Build a record of tools for the agent (key = tool name).
 
-**getTool(toolSet, name)** / **getTools(toolSet)** – Look up one or all tools.
+**getTool(toolSet, name)** / **getTools(toolSet)** — Look up one or all tools.
 
-**executeTool(tool, input, options)** – Run a single tool with input.
+**executeTool(tool, input, options)** — Run a single tool with input.
 
-**executeToolByName(toolSet, name, input, options)** – Run by name; throws if tool missing.
+**executeToolByName(toolSet, name, input, options)** — Run by name; throws if tool missing.
 
-**zodToJsonSchema(schema)** – Convert a Zod schema to JSON Schema (e.g. for MCP).
+**zodToJsonSchema(schema)** — Convert a Zod schema to JSON Schema (e.g. for MCP).
 
 ---
 
 ### Agents
 
-**runAgent(config)** – Run the agent loop until the model returns no tool calls or max iterations is reached.
+**runAgent(config)** — Run the agent loop until the model returns no tool calls or max iterations is reached.
 
 ```typescript
 import { runAgent } from 'sweagent';
@@ -530,15 +827,11 @@ const result = await runAgent({
 // result: { output, steps, totalUsage, messages }
 ```
 
-**AgentStep** – `{ iteration, content?, toolCalls?, toolResults?, usage? }`.
-
-**AgentResult** – `{ output, steps, totalUsage?, messages }`.
-
 ---
 
 ### Subagents
 
-**defineSubagent(config)** – Define a subagent (name must be kebab-case).
+**defineSubagent(config)** — Define a subagent (name must be kebab-case).
 
 ```typescript
 import { defineSubagent } from 'sweagent';
@@ -555,21 +848,83 @@ const def = defineSubagent({
 });
 ```
 
-**runSubagent(definition, input, options)** – Run the subagent in isolation.
+**runSubagent(definition, input, options)** — Run the subagent in isolation.
 
-**createSubagentTool(definition, options)** – Expose one subagent as a tool (input: `{ prompt }`).
+**createSubagentTool(definition, options)** — Expose one subagent as a tool.
 
-**createSubagentToolSet(definitions, options)** – Build a record of subagent tools (`subagent_<name>`).
+**createSubagentToolSet(definitions, options)** — Build a record of subagent tools (`subagent_<name>`).
+
+---
+
+### Planning
+
+**runPlanningAgent(config)** — One-shot mode: single input, auto-advances through all stages, returns plan markdown.
+
+```typescript
+import { runPlanningAgent } from 'sweagent';
+
+const result = await runPlanningAgent({
+  input: string,
+  model?: ModelConfig,
+  maxIterations?: number,
+  onStep?: (step: AgentStep) => void,
+  logger?: Logger,
+});
+// result: AgentResult { output, steps, totalUsage, messages }
+```
+
+**runPlanningWithResult(config)** — Runs the planning agent then validates the output with an LLM judge.
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+
+const result = await runPlanningWithResult({
+  input: string,
+  model?: ModelConfig,
+  logger?: Logger,
+});
+// result: { planning: boolean, plan: string }
+```
+
+**processPlanningChat(userMessage, context, config)** — Multi-turn chat mode. Pass `null` context on the first turn.
+
+```typescript
+import { processPlanningChat } from 'sweagent';
+
+const result = await processPlanningChat(userMessage, context, {
+  model?: ModelConfig,
+  maxIterations?: number,
+  onStep?: (step: AgentStep) => void,
+  logger?: Logger,
+});
+// result: PlanChatTurnResult { message, context, pendingQuestions, planMarkdown }
+```
+
+**validatePlanForCodingAgent(planMarkdown, model, logger)** — LLM-based validation. Returns `{ valid: boolean, feedback?: string }`.
+
+**assemblePlan(projectName, sections)** — Assemble `PlanSections` into a single markdown string.
+
+**writePlanToFile(markdown, outputPath)** — Write plan markdown to a file.
+
+**PlanningContextBuilder** — Fluent builder for `PlanningContext`:
+
+```typescript
+import { createPlanningContextBuilder } from 'sweagent';
+
+const context = createPlanningContextBuilder()
+  .withStage('requirements')
+  .withProjectDescription('Task manager app')
+  .withSections({ overview: '## Overview\n...' })
+  .build();
+```
 
 ---
 
 ### MCP
 
-**BaseMcpClient** – Base class for MCP clients. Lazy connection, `callTool(name, args)` for invocation.
+**BaseMcpClient** — Base class for MCP clients. Lazy connection, `callTool(name, args)` for invocation.
 
-**BaseMcpClient.resolveConfig(options, resolveOpts)** – Build config from options and env (e.g. `MCP_URL`, `MCP_COMMAND`, `MCP_ARGS`).
-
-**Transports** – HTTP and stdio transports are used internally; extend `BaseMcpClient` and pass config with `url` or `command` + `args`.
+**BaseMcpClient.resolveConfig(options, resolveOpts)** — Build config from options and env (e.g. `MCP_URL`, `MCP_COMMAND`, `MCP_ARGS`).
 
 ---
 
@@ -588,14 +943,78 @@ All accept an optional `cause` for chaining.
 
 ---
 
-## Production Modules
+## Domain Agent Modules
+
+Each module is a self-contained domain agent with its own orchestrator, pipeline stages, tools, sub-agents, and output format. All are exported from the main package.
+
+### Planning
+
+The primary module for powering AI coding agents. Generates implementation-ready markdown plans from natural-language project descriptions.
+
+| Attribute         | Detail                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Stages**        | Discovery, Requirements (4 LLM calls), Design (2 LLM calls), Synthesis                                       |
+| **Sub-Agents**    | --                                                                                                           |
+| **Tools**         | -- (pipeline stages, not tool-based)                                                                         |
+| **Output Format** | Markdown plan (11 sections)                                                                                  |
+| **Validation**    | LLM judge checks completeness and actionability                                                              |
+| **Modes**         | One-shot (`runPlanningAgent`), validated (`runPlanningWithResult`), interactive chat (`processPlanningChat`) |
+
+**Output sections:** Overview, Tech Stack, Feature Decisions, Data Models, Pages and Routes, Authentication Flow, API Routes, Implementation Details, Execution Plan, Edge Cases, Testing Checklist.
+
+```typescript
+import { runPlanningWithResult } from 'sweagent';
+
+const { planning, plan } = await runPlanningWithResult({
+  input: 'E-commerce: users, orders, products. Admins manage products.',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+});
+// planning: boolean -- did the plan pass validation?
+// plan: string -- full markdown blueprint
+```
+
+See [Planning Pipeline](#planning-pipeline) for stage-by-stage details.
+
+---
+
+### Requirement Gatherer
+
+Produces structured JSON requirements -- not prose. Unlike the Planning module (markdown output), the Requirement Gatherer extracts typed data that downstream systems can consume programmatically.
+
+| Attribute         | Detail                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| **Stages**        | Discovery, Requirements, Design, Synthesis                                            |
+| **Sub-Agents**    | --                                                                                    |
+| **Tools**         | Stage-specific tools                                                                  |
+| **Output Format** | Structured JSON                                                                       |
+| **Schemas**       | Actors, User Flows, User Stories, Modules, Database Design, API Design                |
+| **Modes**         | One-shot (`runRequirementGathererAgent`), interactive chat (`processRequirementChat`) |
+
+**Output structure:** Actors (with permissions), User Flows (step-by-step sequences), User Stories (with acceptance criteria), Modules (with CRUD operations), Database Design (schemas, relationships), API Design (REST/GraphQL endpoints).
+
+```typescript
+import { runRequirementGathererAgent } from 'sweagent';
+
+const result = await runRequirementGathererAgent({
+  input: 'Project management tool with teams and Kanban boards',
+  model: { provider: 'openai', model: 'gpt-4o-mini' },
+  maxIterations: 15,
+});
+// result.output: structured JSON with actors, flows, stories, modules
+```
+
+---
 
 ### DB Designer
 
-Generates MongoDB-style project schemas (modules, fields, relationships) from natural language requirements.
+An orchestrator agent that delegates to specialized sub-agents for entity analysis and schema refinement. Produces MongoDB-style project schemas with modules, fields, relationships, indexes, and validation rules.
 
-**Tools:** `design_database`, `design_database_pro`, `redesign_database`, `validate_schema`  
-**Subagents:** `entity-analyzer` (structured analysis), `schema-refiner` (refinement/validation)
+| Attribute         | Detail                                                                                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Pattern**       | Orchestrator with sub-agents                                                                                                                                                                     |
+| **Sub-Agents**    | `entity-analyzer` (extracts entities and relationships), `schema-refiner` (normalizes and validates schemas)                                                                                     |
+| **Tools**         | `design_database` (text requirements to schema), `design_database_pro` (structured requirements to schema), `redesign_database` (modify existing schemas), `validate_schema` (schema validation) |
+| **Output Format** | MongoDB schema JSON (modules, fields, relationships)                                                                                                                                             |
 
 ```typescript
 import { runDbDesignerAgent } from 'sweagent';
@@ -604,52 +1023,76 @@ const result = await runDbDesignerAgent({
   input: 'E-commerce: users, orders, products. Admins manage products.',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
   maxIterations: 15,
-  onStep: step => console.log(step),
 });
-console.log(result.output);
+// result.output: MongoDB schema with modules, fields, relationships
 ```
+
+---
 
 ### React Builder
 
-Generates frontend application config (app, modules, pages, fields, API hooks) from a GraphQL schema.
+An orchestrator agent that generates complete frontend application configuration from a GraphQL schema. Uses a `graphql-analyzer` sub-agent to parse schema structure and a `config-validator` to verify the output against frontend config schemas.
 
-**Tools:** `generate_frontend`, `generate_feature_breakdown`, `validate_frontend_config`  
-**Subagents:** `graphql-analyzer`, `config-validator`
+| Attribute         | Detail                                                                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pattern**       | Orchestrator with sub-agents                                                                                                                                |
+| **Sub-Agents**    | `graphql-analyzer` (parses GraphQL schema structure), `config-validator` (validates frontend config output)                                                 |
+| **Tools**         | `generate_frontend` (GraphQL to frontend config), `generate_feature_breakdown` (module/operation breakdown), `validate_frontend_config` (config validation) |
+| **Output Format** | React app config JSON (app, modules, pages, fields, API hooks, branding)                                                                                    |
+| **Schemas**       | App config, User config, Page config, Field config, Branding                                                                                                |
 
 ```typescript
 import { runReactBuilderAgent } from 'sweagent';
 
 const result = await runReactBuilderAgent({
-  input: 'GraphQL schema: type User { id: ID! name: String } ...',
+  input: 'GraphQL schema: type User { id: ID! name: String! } type Task { ... }',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
   maxIterations: 15,
 });
-console.log(result.output);
+// result.output: frontend config JSON with pages, fields, hooks, branding
+```
+
+---
+
+### Hello World (Template)
+
+Minimal example module with a single greeting tool. Use as a starting point when building your own domain agent module.
+
+```typescript
+import { createModel, runAgent, helloWorldTool } from 'sweagent';
+
+const result = await runAgent({
+  model: createModel({ provider: 'openai', model: 'gpt-4o-mini' }),
+  tools: [helloWorldTool],
+  systemPrompt: 'You are helpful.',
+  input: 'Say hello',
+});
 ```
 
 ---
 
 ## Examples
 
-The [examples directory](./examples/README.md) contains runnable scripts. Use the interactive launcher or run a file directly:
+The [examples directory](./examples/README.md) contains runnable scripts organized by domain agent. Use the interactive launcher or run a file directly:
 
 ```bash
-# Interactive launcher (pick folder and example, then provide inputs)
+# Interactive launcher -- pick a domain agent, then an example
 npm run example:interactive
 
-# Run a specific example (from repo root)
-npm run example -- examples/core/01-basic-model.ts
-npm run example -- examples/hello-world/01-hello-world.ts
+# Run a specific domain agent example
+npm run example -- examples/planning/01-planning-agent.ts
 npm run example -- examples/db-designer/01-db-designer-agent.ts
 npm run example -- examples/react-builder/01-react-builder-agent.ts
 ```
 
-| Group             | Examples                                                                             | Description                          |
-| ----------------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
-| **Core**          | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent, 05 Subagents | Models, tools, agents, subagents     |
-| **Hello World**   | 01 Hello World                                                                       | Minimal agent with greeting tool     |
-| **DB Designer**   | 01 DB Designer Agent                                                                 | MongoDB schema from natural language |
-| **React Builder** | 01 React Builder Agent                                                               | Frontend config from GraphQL         |
+| Domain Agent             | Examples                                                                             | What it produces                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| **Planning**             | 01 Planning Agent                                                                    | Implementation-ready markdown plan through 4-stage pipeline              |
+| **Requirement Gatherer** | 01 Requirement Gatherer Agent                                                        | Structured JSON requirements (actors, flows, stories, modules)           |
+| **DB Designer**          | 01 DB Designer Agent                                                                 | MongoDB schemas via `entity-analyzer` and `schema-refiner` sub-agents    |
+| **React Builder**        | 01 React Builder Agent                                                               | Frontend config via `graphql-analyzer` and `config-validator` sub-agents |
+| **Core Framework**       | 01 Basic Model, 02 All Providers, 03 Tool Calling, 04 Multi-Tool Agent, 05 Subagents | Models, tools, agent loop, sub-agent delegation                          |
+| **Hello World**          | 01 Hello World                                                                       | Minimal agent with greeting tool (module template)                       |
 
 ---
 
@@ -657,14 +1100,16 @@ npm run example -- examples/react-builder/01-react-builder-agent.ts
 
 ### Environment variables
 
-| Variable                               | Purpose                                 |
-| -------------------------------------- | --------------------------------------- |
-| `OPENAI_API_KEY`                       | OpenAI API key                          |
-| `ANTHROPIC_API_KEY`                    | Anthropic API key                       |
-| `GOOGLE_GENERATIVE_AI_API_KEY`         | Google AI API key                       |
-| `MCP_URL` / `MCP_COMMAND` / `MCP_ARGS` | MCP client (when using `resolveConfig`) |
-
-For examples: `PROVIDER`, `MODEL`, `AGENT_INPUT`, `REQUIREMENT`, `MAX_ITERATIONS` are used by example scripts.
+| Variable                               | Purpose                                                        |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `OPENAI_API_KEY`                       | OpenAI API key                                                 |
+| `ANTHROPIC_API_KEY`                    | Anthropic API key                                              |
+| `GOOGLE_GENERATIVE_AI_API_KEY`         | Google AI API key                                              |
+| `MCP_URL` / `MCP_COMMAND` / `MCP_ARGS` | MCP client (when using `resolveConfig`)                        |
+| `PROVIDER`                             | Default provider for examples                                  |
+| `MODEL`                                | Default model for examples                                     |
+| `REQUIREMENT`                          | Project requirement for planning/requirement-gatherer examples |
+| `MAX_ITERATIONS`                       | Max agent iterations for examples                              |
 
 ### ModelConfig
 
@@ -674,21 +1119,28 @@ For examples: `PROVIDER`, `MODEL`, `AGENT_INPUT`, `REQUIREMENT`, `MAX_ITERATIONS
 
 `model`, `tools`, `systemPrompt`, `input`, `maxIterations?`, `onStep?`
 
+### PlanningAgentConfig
+
+`input`, `model?`, `maxIterations?`, `onStep?`, `logger?`
+
 ---
 
 ## FAQ
 
-**Which AI provider should I use?**  
-All work well. Choose by existing infra and pricing. The API is the same.
+**Which AI provider should I use?**
+All work well. Choose by existing infrastructure and pricing. The API is the same regardless of provider.
 
-**How do I handle rate limits?**  
+**Can I use this with Claude Code / Codex / Cursor?**
+Yes. sweagent is designed as the structured layer underneath AI coding agents. Use `runPlanningWithResult` to generate a plan, then feed the plan markdown into your coding agent as context. The `{ planning: boolean, plan: string }` output tells you whether the plan is implementation-ready.
+
+**How do I handle rate limits?**
 sweagent has no built-in rate limiting. Use a retry library (e.g. `p-retry`) around `model.invoke` or `runAgent` if needed.
 
-**Can I use sweagent in the browser?**  
+**Can I use sweagent in the browser?**
 Target is Node.js. For browsers, proxy API calls through your backend and keep keys server-side.
 
-**How do I add a new provider?**  
-Implement a factory that returns a model conforming to the internal `Model` interface (e.g. via `createAIModel` and the provider’s AI SDK binding) and register it in `createModel`.
+**How do I add a new provider?**
+Implement a factory that returns a model conforming to the internal `Model` interface (e.g. via `createAIModel` and the provider's AI SDK binding) and register it in `createModel`.
 
 ---
 
@@ -696,14 +1148,12 @@ Implement a factory that returns a model conforming to the internal `Model` inte
 
 ### API key errors
 
-**Invalid API key / Authentication failed**
-
 - Ensure the key is set: `echo $OPENAI_API_KEY` (or the relevant env var).
 - If using `.env`, load it: `tsx --env-file=.env your-script.ts` or `node --env-file=.env your-script.js`.
 
 ### Model not found
 
-- Use the exact model id for the provider (e.g. `gpt-4o-mini`, `claude-3-5-sonnet-20241022`).
+- Use the exact model id for the provider (e.g. `gpt-4o-mini`, `claude-sonnet-4-20250514`).
 - Confirm your account has access to that model.
 
 ### Agent hits max iterations
@@ -713,7 +1163,13 @@ Implement a factory that returns a model conforming to the internal `Model` inte
 
 ### Tool not found
 
-- Tools must be in the same object passed to `runAgent` under the name the model uses (e.g. `createToolSet({ calculator: calculatorTool })` → model calls `calculator`).
+- Tools must be in the same object passed to `runAgent` under the name the model uses (e.g. `createToolSet({ calculator: calculatorTool })` means the model calls `calculator`).
+
+### Planning module returns `planning: false`
+
+- The LLM validator found missing sections. Check the `plan` string for gaps (no tech stack? no implementation order?).
+- Try a more capable model (e.g. `gpt-4o` instead of `gpt-4o-mini`).
+- Provide a more detailed project description as input.
 
 ---
 
@@ -746,17 +1202,11 @@ npm run build
 
 **Support**
 
-- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) – Bugs and features
-- [GitHub Discussions](https://github.com/sijeeshmiziha/sweagent/discussions) – Questions
+- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) — Bugs and features
+- [GitHub Discussions](https://github.com/sijeeshmiziha/sweagent/discussions) — Questions
 
 ---
 
 ## License
 
-MIT License – see [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  Made with ❤️ by the CompilersLab team!
-</p>
+MIT License — see [LICENSE](LICENSE) for details.

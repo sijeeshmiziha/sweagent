@@ -10,6 +10,7 @@ import { select, input, confirm } from '@inquirer/prompts';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { runPlanningWithResult, createLogger, loggerConfigFromEnv } from 'sweagent';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(currentDir, '..');
@@ -17,7 +18,18 @@ const projectRoot = resolve(currentDir, '..');
 interface ExampleEntry {
   value: string;
   name: string;
-  group: 'Core' | 'Hello World' | 'DB Designer' | 'React Builder' | 'Requirement Gatherer';
+  group:
+    | 'Core'
+    | 'Hello World'
+    | 'DB Designer'
+    | 'React Builder'
+    | 'Requirement Gatherer'
+    | 'Planning'
+    | 'Data Modeler'
+    | 'API Designer'
+    | 'Auth Designer'
+    | 'Frontend Architect'
+    | 'Execution Planner';
   envVars: string[];
 }
 
@@ -76,6 +88,42 @@ const EXAMPLES: ExampleEntry[] = [
     group: 'Requirement Gatherer',
     envVars: ['PROVIDER', 'MODEL'],
   },
+  {
+    value: 'examples/planning/01-planning-agent.ts',
+    name: '01 - Planning Agent',
+    group: 'Planning',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/data-modeler/01-data-modeler-agent.ts',
+    name: '01 - Data Modeler Agent',
+    group: 'Data Modeler',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/api-designer/01-api-designer-agent.ts',
+    name: '01 - API Designer Agent',
+    group: 'API Designer',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/auth-designer/01-auth-designer-agent.ts',
+    name: '01 - Auth Designer Agent',
+    group: 'Auth Designer',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/frontend-architect/01-frontend-architect-agent.ts',
+    name: '01 - Frontend Architect Agent',
+    group: 'Frontend Architect',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
+  {
+    value: 'examples/execution-planner/01-execution-planner-agent.ts',
+    name: '01 - Execution Planner Agent',
+    group: 'Execution Planner',
+    envVars: ['PROVIDER', 'MODEL', 'REQUIREMENT'],
+  },
 ];
 
 const ENV_VAR_LABELS: Record<string, string> = {
@@ -130,12 +178,32 @@ function runExample(scriptPath: string, envOverrides: Record<string, string>): v
   });
 }
 
+async function runPlanning(
+  envOverrides: Record<string, string>
+): Promise<{ planning: boolean; plan: string }> {
+  const provider = (envOverrides.PROVIDER ?? 'openai') as 'openai' | 'anthropic' | 'google';
+  const model = envOverrides.MODEL ?? 'gpt-4o-mini';
+  const requirement = envOverrides.REQUIREMENT ?? envOverrides.AGENT_INPUT ?? '';
+  const logger = createLogger(loggerConfigFromEnv({ name: 'planning', pretty: true }));
+  return runPlanningWithResult({
+    input: requirement,
+    model: { provider, model },
+    logger,
+  });
+}
+
 const GROUPS = [
   'Core',
   'Hello World',
   'DB Designer',
   'React Builder',
   'Requirement Gatherer',
+  'Planning',
+  'Data Modeler',
+  'API Designer',
+  'Auth Designer',
+  'Frontend Architect',
+  'Execution Planner',
 ] as const;
 type Group = (typeof GROUPS)[number];
 
@@ -160,7 +228,13 @@ async function main(): Promise<void> {
   const envOverrides = entry.envVars.length > 0 ? await promptForEnvVars(entry.envVars, entry) : {};
 
   console.log(`\nRunning: ${entry.name}\n`);
-  runExample(entry.value, envOverrides);
+  if (entry.group === 'Planning') {
+    const result = await runPlanning(envOverrides);
+    console.log('\n--- Planning Result (JSON) ---');
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    runExample(entry.value, envOverrides);
+  }
 
   const runAgain = await confirm({
     message: 'Run another example?',
