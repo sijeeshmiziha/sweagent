@@ -43,16 +43,24 @@ export const modelSchema = z.object({
   indexes: z.array(z.string()).default([]),
 });
 
-/** Case-insensitive enum */
-const ciEnum = <T extends string>(values: readonly [T, ...T[]]) =>
-  z
-    .string()
-    .transform(s => s.toLowerCase().trim())
-    .pipe(z.enum(values));
-
 export const middlewareConfigSchema = z.object({
   name: z.string(),
-  type: ciEnum(['auth', 'validation', 'errorHandler', 'cors', 'rateLimit', 'logging', 'custom']),
+  type: z
+    .string()
+    .transform(s => {
+      const n = s.toLowerCase().replace(/[\s_-]+/g, '');
+      if (['auth', 'authentication', 'jwt', 'token'].includes(n)) return 'auth' as const;
+      if (['validation', 'validate', 'validator', 'input'].includes(n))
+        return 'validation' as const;
+      if (['errorhandler', 'error', 'errorhandling', 'errors'].includes(n))
+        return 'errorHandler' as const;
+      if (['cors', 'crossorigin'].includes(n)) return 'cors' as const;
+      if (['ratelimit', 'ratelimiter', 'ratelimiting', 'throttle'].includes(n))
+        return 'rateLimit' as const;
+      if (['logging', 'logger', 'log', 'morgan'].includes(n)) return 'logging' as const;
+      return 'custom' as const;
+    })
+    .pipe(z.enum(['auth', 'validation', 'errorHandler', 'cors', 'rateLimit', 'logging', 'custom'])),
   config: z.record(z.string(), z.unknown()).default({}),
 });
 

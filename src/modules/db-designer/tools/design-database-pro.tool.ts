@@ -45,8 +45,20 @@ const structuredInputSchema = z.object({
   ),
   technicalRequirements: z
     .object({
-      authentication: z.enum(['none', 'email', 'oauth', 'phone', 'email_and_phone']),
-      authorization: z.boolean(),
+      authentication: z
+        .string()
+        .transform(s => {
+          const n = s.toLowerCase().replace(/[\s_-]+/g, '');
+          if (['none', 'no', ''].includes(n)) return 'none' as const;
+          if (['email', 'emailpassword', 'emailandpassword'].includes(n)) return 'email' as const;
+          if (['oauth', 'oauth2', 'social'].includes(n)) return 'oauth' as const;
+          if (['phone', 'phoneotp', 'sms'].includes(n)) return 'phone' as const;
+          if (['emailandphone', 'emailphone', 'both'].includes(n))
+            return 'email_and_phone' as const;
+          return 'email' as const;
+        })
+        .pipe(z.enum(['none', 'email', 'oauth', 'phone', 'email_and_phone'])),
+      authorization: z.coerce.boolean().default(false),
       roles: z.array(z.string()).optional(),
       integrations: z.array(z.string()).optional(),
       realtime: z.boolean().optional(),

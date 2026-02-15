@@ -14,7 +14,28 @@ const ciEnum = <T extends string>(values: readonly [T, ...T[]]) =>
 export const middlewareSchema = z.object({
   name: z.string(),
   purpose: z.string(),
-  appliesTo: ciEnum(['global', 'route', 'resource']),
+  appliesTo: z
+    .string()
+    .default('global')
+    .transform(s => {
+      const n = s.toLowerCase().trim();
+      if (['global', 'all', 'app', 'application', 'every', 'server'].includes(n)) return 'global';
+      if (
+        [
+          'route',
+          'routes',
+          'specific',
+          'specific routes',
+          'endpoint',
+          'endpoints',
+          'path',
+        ].includes(n)
+      )
+        return 'route';
+      if (['resource', 'entity', 'module', 'controller', 'model'].includes(n)) return 'resource';
+      return 'global';
+    })
+    .pipe(z.enum(['global', 'route', 'resource'])),
   config: z.record(z.string(), z.unknown()).default({}),
 });
 

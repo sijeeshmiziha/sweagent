@@ -8,7 +8,18 @@ import { fieldSchema } from './field.schema';
 export const moduleSchema = z.object({
   moduleName: z.string().describe('camelCase, single word, never auth/authentication'),
   isUserModule: z.coerce.boolean().default(false),
-  authMethod: z.enum(['EMAIL_AND_PASSWORD', 'PHONE_AND_OTP', '']).optional(),
+  authMethod: z
+    .string()
+    .transform(s => {
+      const n = s.toUpperCase().replace(/[\s-]+/g, '_');
+      if (['EMAIL_AND_PASSWORD', 'EMAIL_PASSWORD', 'EMAIL'].includes(n))
+        return 'EMAIL_AND_PASSWORD' as const;
+      if (['PHONE_AND_OTP', 'PHONE_OTP', 'PHONE', 'SMS'].includes(n))
+        return 'PHONE_AND_OTP' as const;
+      return '' as const;
+    })
+    .pipe(z.enum(['EMAIL_AND_PASSWORD', 'PHONE_AND_OTP', '']))
+    .optional(),
   emailField: z.string().optional(),
   passwordField: z.string().optional(),
   phoneField: z.string().optional(),
