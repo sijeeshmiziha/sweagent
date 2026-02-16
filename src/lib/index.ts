@@ -76,3 +76,6 @@ export type {
   McpTransport,
   McpResolveOptions,
 } from './mcp';
+
+export { createSweagentServer, TOOL_REGISTRY, findTool } from './mcp';
+export type { AgentToolInput, AgentToolEntry } from './mcp';

@@ -19,6 +19,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "sweagent": "./dist/mcp-server.js"
+  },
   "scripts": {
     "build": "npm run typecheck && npm run lint && tsup",
     "dev": "tsup --watch",
@@ -43,7 +46,8 @@
     "release:minor": "npm version minor && git push origin main --tags",
     "release:major": "npm version major && git push origin main --tags",
     "prepublishOnly": "npm run ci",
-    "prepare": "husky"
+    "prepare": "husky",
+    "mcp": "node --env-file=.env dist/mcp-server.js"
   },
   "exports": {
     ".": {
@@ -74,7 +78,9 @@
     "ai-sdk",
     "openai",
     "anthropic",
-    "google"
+    "google",
+    "mcp",
+    "model-context-protocol"
   ],
   "license": "MIT",
   "dependencies": {
