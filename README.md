@@ -117,13 +117,9 @@ flowchart LR
   More --> Agent
 ```
 
-### 1. Install
+### 1. Add the config for your IDE
 
-```bash
-npm install -g sweagent
-```
-
-### 2. Add the config for your IDE
+No install step needed -- `npx` downloads and runs sweagent automatically on first use. Just create the config file for your IDE and add your API key.
 
 **Cursor** -- create `.cursor/mcp.json` in your project root:
 
@@ -131,7 +127,8 @@ npm install -g sweagent
 {
   "mcpServers": {
     "sweagent": {
-      "command": "sweagent",
+      "command": "npx",
+      "args": ["-y", "sweagent"],
       "env": { "OPENAI_API_KEY": "your-openai-api-key" }
     }
   }
@@ -144,7 +141,8 @@ npm install -g sweagent
 {
   "servers": {
     "sweagent": {
-      "command": "sweagent",
+      "command": "npx",
+      "args": ["-y", "sweagent"],
       "env": { "OPENAI_API_KEY": "your-openai-api-key" }
     }
   }
@@ -157,7 +155,8 @@ npm install -g sweagent
 {
   "mcpServers": {
     "sweagent": {
-      "command": "sweagent",
+      "command": "npx",
+      "args": ["-y", "sweagent"],
       "env": { "OPENAI_API_KEY": "your-openai-api-key" }
     }
   }
@@ -170,16 +169,15 @@ npm install -g sweagent
 {
   "mcpServers": {
     "sweagent": {
-      "command": "sweagent",
+      "command": "npx",
+      "args": ["-y", "sweagent"],
       "env": { "OPENAI_API_KEY": "your-openai-api-key" }
     }
   }
 }
 ```
 
-> **Don't want a global install?** Replace `"command": "sweagent"` with `"command": "npx"` and add `"args": ["-y", "sweagent"]`. See [MCP Server](#mcp-server) for all options including from-source setup.
-
-### 3. Restart your IDE and start prompting
+### 2. Restart your IDE and start prompting
 
 Open the chat and try:
 
@@ -1060,38 +1058,20 @@ flowchart LR
 
 ### Quick Start
 
-**1. Install sweagent from npm:**
+**1. Add the config for your IDE** (pick your IDE below). No install needed -- `npx` downloads sweagent automatically. Requires Node.js >= 18.
 
-```bash
-npm install -g sweagent
-```
+**2. Add your API key** to the `env` block in the config (at least one provider key is required).
 
-This installs the `sweagent` command globally on your machine. Requires Node.js >= 18.
-
-**2. Set your API key:**
-
-You need at least one AI provider API key. Export it in your shell or pass it via the IDE config (shown below):
-
-```bash
-export OPENAI_API_KEY=sk-...
-# or ANTHROPIC_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY
-```
-
-**3. Add the config to your IDE** (pick your IDE below) **and restart.**
+**3. Restart your IDE.**
 
 **4. Verify** -- ask the chat agent: _"Use the hello_world tool to test the sweagent server."_
 
-> **No global install?** You can skip step 1 and use `npx -y sweagent` instead. The IDE configs below show both options.
-
 ### How it runs
 
-The MCP server communicates over **stdio**. Your IDE starts it automatically -- you do not run these commands yourself. Under the hood, the IDE runs one of:
+The MCP server communicates over **stdio**. Your IDE starts it automatically -- you do not run these commands yourself. Under the hood, the IDE runs:
 
 ```bash
-# If you installed globally (npm install -g sweagent)
-sweagent
-
-# If you prefer npx (no install needed, downloads on first use)
+# npx downloads and runs sweagent on first use (recommended)
 npx -y sweagent
 
 # If you cloned the repo and built from source
@@ -1101,23 +1081,6 @@ node --env-file=.env dist/stdio.js
 ### Setup with Cursor
 
 Create `.cursor/mcp.json` in your project root:
-
-**Option A -- Global install (recommended):**
-
-```json
-{
-  "mcpServers": {
-    "sweagent": {
-      "command": "sweagent",
-      "env": {
-        "OPENAI_API_KEY": "your-openai-api-key"
-      }
-    }
-  }
-}
-```
-
-**Option B -- npx (no install needed):**
 
 ```json
 {
@@ -1133,7 +1096,10 @@ Create `.cursor/mcp.json` in your project root:
 }
 ```
 
-**Option C -- From source (local clone):**
+Cursor auto-discovers `.cursor/mcp.json`. After saving, restart Cursor or reload the window. The sweagent tools appear in the Cursor chat tool list.
+
+<details>
+<summary>From source (local clone)</summary>
 
 ```json
 {
@@ -1146,28 +1112,11 @@ Create `.cursor/mcp.json` in your project root:
 }
 ```
 
-Cursor auto-discovers `.cursor/mcp.json`. After saving, restart Cursor or reload the window. The sweagent tools appear in the Cursor chat tool list.
+</details>
 
 ### Setup with VS Code (GitHub Copilot)
 
 Create `.vscode/mcp.json` in your project root:
-
-**Option A -- Global install:**
-
-```json
-{
-  "servers": {
-    "sweagent": {
-      "command": "sweagent",
-      "env": {
-        "OPENAI_API_KEY": "your-openai-api-key"
-      }
-    }
-  }
-}
-```
-
-**Option B -- npx:**
 
 ```json
 {
@@ -1188,23 +1137,6 @@ VS Code discovers MCP servers from `.vscode/mcp.json` automatically. You can als
 ### Setup with Windsurf
 
 Edit (or create) the Windsurf MCP config file at `~/.codeium/windsurf/mcp_config.json`:
-
-**Option A -- Global install:**
-
-```json
-{
-  "mcpServers": {
-    "sweagent": {
-      "command": "sweagent",
-      "env": {
-        "OPENAI_API_KEY": "your-openai-api-key"
-      }
-    }
-  }
-}
-```
-
-**Option B -- npx:**
 
 ```json
 {
@@ -1228,23 +1160,6 @@ Edit the Claude Desktop config file:
 
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-**Option A -- Global install:**
-
-```json
-{
-  "mcpServers": {
-    "sweagent": {
-      "command": "sweagent",
-      "env": {
-        "OPENAI_API_KEY": "your-openai-api-key"
-      }
-    }
-  }
-}
-```
-
-**Option B -- npx:**
 
 ```json
 {
