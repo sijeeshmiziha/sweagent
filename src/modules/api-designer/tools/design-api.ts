@@ -26,7 +26,7 @@ export function createDesignApiTool(model: Model) {
         { role: 'system' as const, content: 'You are an API architect. Return only valid JSON.' },
         { role: 'user' as const, content: userPrompt },
       ];
-      const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 8192 });
+      const response = await model.invoke(messages, { temperature: 0.3, maxOutputTokens: 16384 });
       return parseModelJsonResponse(response.text, apiDesignSchema);
     },
   });

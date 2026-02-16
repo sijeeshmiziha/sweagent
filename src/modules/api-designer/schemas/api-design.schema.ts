@@ -62,11 +62,17 @@ const apiStyleSchema = z.unknown().transform(v => {
   return 'rest' as const;
 });
 
-export const apiDesignSchema = z.object({
-  style: apiStyleSchema,
-  baseUrl: z.string().default('/api/v1'),
-  endpoints: z.array(restEndpointSchema).default([]),
-  graphqlOperations: z.array(graphqlOperationSchema).default([]),
-});
+export const apiDesignSchema = z
+  .object({
+    style: apiStyleSchema,
+    baseUrl: z.string().default('/api/v1'),
+    endpoints: z.array(restEndpointSchema).optional().default([]),
+    graphqlOperations: z.array(graphqlOperationSchema).optional().default([]),
+  })
+  .refine(data => data.endpoints.length > 0 || data.graphqlOperations.length > 0, {
+    message:
+      'API design must include at least one REST endpoint or GraphQL operation. ' +
+      'The endpoints array and graphqlOperations array cannot both be empty.',
+  });
 
 export type TApiDesign = z.infer<typeof apiDesignSchema>;
