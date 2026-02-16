@@ -12,7 +12,7 @@ export default defineConfig([
     external: ['ai', '@ai-sdk/openai', '@ai-sdk/anthropic', '@ai-sdk/google'],
   },
   {
-    entry: ['src/mcp-server.ts'],
+    entry: ['src/lib/mcp/server/stdio.ts'],
     format: ['esm'],
     dts: true,
     sourcemap: true,

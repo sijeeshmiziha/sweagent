@@ -27,6 +27,7 @@
   <a href="#domain-agent-modules">Modules</a> •
   <a href="#getting-started">Getting Started</a> •
   <a href="#installation">Installation</a> •
+  <a href="#mcp-server">MCP Server</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#api-reference">API Reference</a> •
   <a href="#reference">Reference</a> •
@@ -49,6 +50,7 @@
 - [Domain Agent Modules](#domain-agent-modules)
 - [Getting Started](#getting-started)
 - [Installation](#installation)
+- [MCP Server](#mcp-server)
 - [Architecture](#architecture)
 - [API Reference](#api-reference)
 - [Reference](#reference)
@@ -99,6 +101,8 @@ TypeScript-first, built on the Vercel AI SDK, ships with all provider SDKs (Open
 ## Use with Cursor, Claude Code, and Codex
 
 Coding agents are powerful executors -- but they build faster and better when they start from a structured plan instead of a vague prompt. sweagent generates the blueprints; your coding agent implements them.
+
+> **MCP Server (zero-code integration):** sweagent also ships as an MCP server. Configure it once in your IDE and call any of the 13 domain agents directly from the chat -- no scripts or code needed. See [MCP Server](#mcp-server) for setup instructions for Cursor, VS Code, Windsurf, and Claude Desktop.
 
 ```mermaid
 flowchart LR
@@ -1031,6 +1035,300 @@ npm run example -- examples/hello-world/01-hello-world.ts
 
 ---
 
+## MCP Server
+
+sweagent is also a **Model Context Protocol (MCP) server**. Install it once and every MCP-compatible IDE or tool -- Cursor, VS Code, Windsurf, Claude Desktop, and more -- can call any of the 13 domain agents directly from the chat interface. No wrapper scripts, no code to write.
+
+```mermaid
+flowchart LR
+  IDE["Cursor / VS Code / Windsurf / Claude Desktop"] -->|"MCP stdio"| Server["sweagent MCP Server"]
+  Server --> Plan["plan"]
+  Server --> Req["gather_requirements"]
+  Server --> Data["design_data_model"]
+  Server --> Api["design_api"]
+  Server --> Auth["design_auth"]
+  Server --> More["... 8 more tools"]
+```
+
+### Quick Start
+
+**1. Install sweagent from npm:**
+
+```bash
+npm install -g sweagent
+```
+
+This installs the `sweagent` command globally on your machine. Requires Node.js >= 18.
+
+**2. Set your API key:**
+
+You need at least one AI provider API key. Export it in your shell or pass it via the IDE config (shown below):
+
+```bash
+export OPENAI_API_KEY=sk-...
+# or ANTHROPIC_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY
+```
+
+**3. Add the config to your IDE** (pick your IDE below) **and restart.**
+
+**4. Verify** -- ask the chat agent: _"Use the hello_world tool to test the sweagent server."_
+
+> **No global install?** You can skip step 1 and use `npx -y sweagent` instead. The IDE configs below show both options.
+
+### How it runs
+
+The MCP server communicates over **stdio**. Your IDE starts it automatically -- you do not run these commands yourself. Under the hood, the IDE runs one of:
+
+```bash
+# If you installed globally (npm install -g sweagent)
+sweagent
+
+# If you prefer npx (no install needed, downloads on first use)
+npx -y sweagent
+
+# If you cloned the repo and built from source
+node --env-file=.env dist/stdio.js
+```
+
+### Setup with Cursor
+
+Create `.cursor/mcp.json` in your project root:
+
+**Option A -- Global install (recommended):**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option B -- npx (no install needed):**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "npx",
+      "args": ["-y", "sweagent"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option C -- From source (local clone):**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "node",
+      "args": ["--env-file=.env", "dist/stdio.js"]
+    }
+  }
+}
+```
+
+Cursor auto-discovers `.cursor/mcp.json`. After saving, restart Cursor or reload the window. The sweagent tools appear in the Cursor chat tool list.
+
+### Setup with VS Code (GitHub Copilot)
+
+Create `.vscode/mcp.json` in your project root:
+
+**Option A -- Global install:**
+
+```json
+{
+  "servers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option B -- npx:**
+
+```json
+{
+  "servers": {
+    "sweagent": {
+      "command": "npx",
+      "args": ["-y", "sweagent"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+VS Code discovers MCP servers from `.vscode/mcp.json` automatically. You can also configure servers globally via **MCP: Open User Configuration** in the Command Palette. After saving, open the Copilot chat panel -- the sweagent tools are available to the agent.
+
+### Setup with Windsurf
+
+Edit (or create) the Windsurf MCP config file at `~/.codeium/windsurf/mcp_config.json`:
+
+**Option A -- Global install:**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option B -- npx:**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "npx",
+      "args": ["-y", "sweagent"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+Restart Windsurf after saving. The sweagent tools appear in the Cascade chat.
+
+### Setup with Claude Desktop
+
+Edit the Claude Desktop config file:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Option A -- Global install:**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option B -- npx:**
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "npx",
+      "args": ["-y", "sweagent"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving. The sweagent tools appear in the tool list (hammer icon) in a new conversation.
+
+### Available Tools
+
+All 13 domain agents are exposed as MCP tools:
+
+| Tool                  | Description                                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| `plan`                | Generate a full software plan (discovery, requirements, design, synthesis) from a project description |
+| `gather_requirements` | Extract structured requirements (actors, flows, stories, modules) from a project description          |
+| `design_data_model`   | Design a database schema (MongoDB or PostgreSQL) with entities, relations, and indexes                |
+| `design_api`          | Design REST or GraphQL API contracts (endpoints, request/response schemas) from requirements          |
+| `design_auth`         | Design authentication and authorization strategy (providers, roles, permissions, flows)               |
+| `architect_backend`   | Design backend architecture (folder structure, services, middleware, deployment)                      |
+| `architect_frontend`  | Design frontend architecture (components, state management, routing, styling)                         |
+| `build_express`       | Generate Express.js REST API configuration and boilerplate from an API design                         |
+| `build_apollo`        | Generate Apollo GraphQL subgraph configuration and resolvers from an API design                       |
+| `build_react`         | Generate React + Vite application configuration and components from a GraphQL schema                  |
+| `build_nextjs`        | Generate Next.js App Router configuration and pages from requirements                                 |
+| `plan_execution`      | Create a phased execution plan with edge-case analysis and testing strategy                           |
+| `hello_world`         | Test agent that greets users -- use to verify the MCP server is working                               |
+
+### Tool Input Parameters
+
+Every tool accepts the same input shape:
+
+| Parameter     | Type                                  | Required | Description                                                                            |
+| ------------- | ------------------------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `input`       | `string`                              | Yes      | Natural language description of what to build or design                                |
+| `provider`    | `"openai" \| "anthropic" \| "google"` | No       | LLM provider (defaults to `openai`)                                                    |
+| `model`       | `string`                              | No       | Model name, e.g. `gpt-4o-mini`, `claude-sonnet-4-20250514` (defaults to `gpt-4o-mini`) |
+| `temperature` | `number` (0--1)                       | No       | Sampling temperature                                                                   |
+
+### Verify the Server
+
+After configuring your IDE, verify the connection by asking the chat agent:
+
+> Use the hello_world tool to verify the sweagent MCP server is working.
+
+If the server is running correctly, the agent will call the `hello_world` tool and return a greeting.
+
+### Using Multiple Providers
+
+Pass `provider` and `model` to any tool call to override the default (OpenAI gpt-4o-mini). Make sure the corresponding API key is set in the `env` block of your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "npx",
+      "args": ["-y", "sweagent"],
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key",
+        "ANTHROPIC_API_KEY": "your-anthropic-api-key",
+        "GOOGLE_GENERATIVE_AI_API_KEY": "your-google-api-key"
+      }
+    }
+  }
+}
+```
+
+Then tell the agent which provider to use:
+
+> Use the plan tool with provider "anthropic" and model "claude-sonnet-4-20250514" to plan a task manager app with teams, Kanban boards, and time tracking.
+
+### Troubleshooting MCP
+
+**Server not appearing in tool list** -- Restart your IDE after saving the config file. Check that the config file is in the correct location for your IDE.
+
+**API key errors** -- Make sure the API key is set in the `env` block of your MCP config, not just in a `.env` file (unless you are using the `--env-file` flag with the node command).
+
+**npx timeout or failure** -- Run `npx sweagent` manually in a terminal to check for errors. Make sure Node.js >= 18 is installed.
+
+**Tool returns an error** -- The MCP server catches errors and returns them as text. Check that the `input` parameter contains a meaningful project description, not an empty string.
+
+---
+
 ## Architecture
 
 ### System overview
@@ -1357,6 +1655,8 @@ const context = createPlanningContextBuilder()
 ---
 
 ### MCP
+
+sweagent ships as a standalone **MCP server** that exposes all 13 domain agents as tools. See [MCP Server](#mcp-server) for IDE setup and tool reference.
 
 **BaseMcpClient** -- Base class for MCP clients. Lazy connection, `callTool(name, args)` for invocation.
 

@@ -3,13 +3,13 @@
  * Exposes all sweagent agent modules as MCP tools.
  *
  * Usage:
- *   node dist/mcp-server.js
+ *   node dist/stdio.js
  *   npx sweagent
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { createSweagentServer } from './lib/mcp/server/server';
-import { TOOL_REGISTRY } from './lib/mcp/server/tool-registry';
+import { createSweagentServer } from './server';
+import { TOOL_REGISTRY } from './tool-registry';
 
 const log = (msg: string): void => {
   process.stderr.write(`[sweagent] ${msg}\n`);

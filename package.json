@@ -20,7 +20,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "sweagent": "./dist/mcp-server.js"
+    "sweagent": "./dist/stdio.js"
   },
   "scripts": {
     "build": "npm run typecheck && npm run lint && tsup",
@@ -47,7 +47,7 @@
     "release:major": "npm version major && git push origin main --tags",
     "prepublishOnly": "npm run ci",
     "prepare": "husky",
-    "mcp": "node --env-file=.env dist/mcp-server.js"
+    "mcp": "node --env-file=.env dist/stdio.js"
   },
   "exports": {
     ".": {
