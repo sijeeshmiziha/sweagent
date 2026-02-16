@@ -77,17 +77,17 @@ export const TOOL_REGISTRY: AgentToolEntry[] = [
   entry(
     'build_express',
     'Generate Express.js REST API configuration and boilerplate from an API design.',
-    runExpressBuilderAgent
+    cfg => runExpressBuilderAgent({ ...cfg, disableScaffold: true })
   ),
   entry(
     'build_apollo',
     'Generate Apollo GraphQL subgraph configuration and resolvers from an API design.',
-    runApolloBuilderAgent
+    cfg => runApolloBuilderAgent({ ...cfg, disableScaffold: true })
   ),
   entry(
     'build_react',
     'Generate React + Vite application configuration and components from a GraphQL schema.',
-    runReactBuilderAgent
+    cfg => runReactBuilderAgent({ ...cfg, disableScaffold: true })
   ),
   entry(
     'build_nextjs',

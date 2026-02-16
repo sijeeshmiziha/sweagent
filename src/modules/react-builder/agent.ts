@@ -29,10 +29,10 @@ Respond with the final frontend config (as JSON) or a clear summary and the conf
  * Use generate_frontend tool for config generation; the tool may throw on parse failure (caller can retry with new input).
  */
 export async function runReactBuilderAgent(config: ReactBuilderAgentConfig): Promise<AgentResult> {
-  const { input, model: modelConfig, maxIterations = 15, onStep, logger } = config;
+  const { input, model: modelConfig, maxIterations = 15, onStep, logger, disableScaffold } = config;
 
   const model = createModel(modelConfig ?? { provider: 'openai', model: 'gpt-4o-mini' });
-  const reactTools = createReactBuilderTools(model);
+  const reactTools = createReactBuilderTools(model, { disableScaffold });
   const configValidator = createConfigValidatorSubagent();
   const subagentTools = createSubagentToolSet([graphqlAnalyzerSubagent, configValidator], {
     parentModel: model,

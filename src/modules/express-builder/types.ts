@@ -17,4 +17,6 @@ export interface ExpressBuilderAgentConfig {
   onStep?: (step: AgentStep) => void;
   /** Optional logger for execution logs */
   logger?: Logger;
+  /** When true, exclude scaffold tools that write files to disk (used in MCP mode) */
+  disableScaffold?: boolean;
 }

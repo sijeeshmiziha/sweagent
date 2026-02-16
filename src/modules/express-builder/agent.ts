@@ -12,17 +12,21 @@ import { routeGeneratorSubagent, middlewareConfiguratorSubagent } from './subage
 import type { ExpressBuilderAgentConfig } from './types';
 import type { AgentResult } from '../../lib/types/agent';
 
-const ORCHESTRATOR_SYSTEM_PROMPT = `${EXPRESS_BUILDER_SYSTEM_PROMPT}
+const SCAFFOLD_STEP =
+  '\n5. **Scaffold (optional)**: If an output directory is provided, use scaffold_express to compile templates.';
+
+function buildOrchestratorPrompt(disableScaffold?: boolean): string {
+  return `${EXPRESS_BUILDER_SYSTEM_PROMPT}
 
 You are the Express builder orchestrator. When the user provides requirements:
 
 1. **Generate routes**: Use subagent_route-generator to design route definitions from the API design.
 2. **Configure middleware**: Use subagent_middleware-configurator to design the middleware stack.
 3. **Generate config**: Use generate_express to produce the complete Express configuration as JSON.
-4. **Validate**: Use validate_express to check the config JSON before returning.
-5. **Scaffold (optional)**: If an output directory is provided, use scaffold_express to compile templates.
+4. **Validate**: Use validate_express to check the config JSON before returning.${disableScaffold ? '' : SCAFFOLD_STEP}
 
 Respond with the final Express config as JSON.`;
+}
 
 /**
  * Run the express-builder orchestrator agent.
@@ -30,10 +34,10 @@ Respond with the final Express config as JSON.`;
 export async function runExpressBuilderAgent(
   config: ExpressBuilderAgentConfig
 ): Promise<AgentResult> {
-  const { input, model: modelConfig, maxIterations = 15, onStep, logger } = config;
+  const { input, model: modelConfig, maxIterations = 15, onStep, logger, disableScaffold } = config;
 
   const model = createModel(modelConfig ?? { provider: 'openai', model: 'gpt-4o-mini' });
-  const tools = createExpressBuilderTools(model);
+  const tools = createExpressBuilderTools(model, { disableScaffold });
   const subagentTools = createSubagentToolSet(
     [routeGeneratorSubagent, middlewareConfiguratorSubagent],
     { parentModel: model }
@@ -43,7 +47,7 @@ export async function runExpressBuilderAgent(
   return runAgent({
     model,
     tools: allTools,
-    systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT,
+    systemPrompt: buildOrchestratorPrompt(disableScaffold),
     input,
     maxIterations,
     onStep,
