@@ -2,6 +2,7 @@
  * MCP server tool registry - maps every sweagent module to an MCP tool entry.
  */
 
+import type { AgentStep } from '../../types/agent';
 import type { ModelConfig } from '../../types/model';
 import type { AgentToolEntry } from './types';
 
@@ -22,12 +23,17 @@ import { runHelloWorldAgent } from '../../../modules/hello-world';
 function entry(
   name: string,
   description: string,
-  runner: (cfg: { input: string; model?: ModelConfig }) => Promise<{ output: string }>
+  runner: (cfg: {
+    input: string;
+    model?: ModelConfig;
+    onStep?: (step: AgentStep) => void;
+  }) => Promise<{ output: string }>
 ): AgentToolEntry {
   return {
     name,
     description,
-    handler: (input, model) => runner({ input, model }) as ReturnType<AgentToolEntry['handler']>,
+    handler: (input, model, onStep) =>
+      runner({ input, model, onStep }) as ReturnType<AgentToolEntry['handler']>,
   };
 }
 

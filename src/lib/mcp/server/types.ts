@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 
-import type { AgentResult } from '../../types/agent';
+import type { AgentResult, AgentStep } from '../../types/agent';
 import type { ModelConfig } from '../../types/model';
 
 /** Raw Zod shape for McpServer.registerTool inputSchema. */
@@ -40,5 +40,9 @@ export function buildModelConfig(input: AgentToolInput): ModelConfig | undefined
 export interface AgentToolEntry {
   name: string;
   description: string;
-  handler: (input: string, model?: ModelConfig) => Promise<AgentResult>;
+  handler: (
+    input: string,
+    model?: ModelConfig,
+    onStep?: (step: AgentStep) => void
+  ) => Promise<AgentResult>;
 }
