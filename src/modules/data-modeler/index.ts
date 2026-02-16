@@ -61,8 +61,9 @@ export type {
   MongoTechnicalRequirements,
   MongoStructuredInput,
   MongoDbDesignerAgentConfig,
-  DbDesignerAgentConfig,
 } from './types';
+/** @deprecated Use MongoDbDesignerAgentConfig */
+export type { MongoDbDesignerAgentConfig as DbDesignerAgentConfig } from './types';
 
 export {
   MONGODB_SYSTEM_PROMPT,
