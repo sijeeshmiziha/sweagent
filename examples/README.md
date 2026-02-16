@@ -144,15 +144,15 @@ The primary use case for sweagent is generating structured specs that make Curso
 3. **Hand to your coding agent** -- Reference the spec files in Cursor chat, Claude Code's CLAUDE.md, or Codex context
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 import { writeFileSync } from 'fs';
 
 // Generate a plan
-const { plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'Task manager with teams, Kanban boards, and time tracking',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
-writeFileSync('plan.md', plan);
+writeFileSync('plan.md', result.output);
 
 // Cursor: "Implement @plan.md step by step"
 // Claude Code: save as CLAUDE.md for automatic context
@@ -175,7 +175,7 @@ npm install sweagent
 
 ```typescript
 import { createModel, runAgent, defineTool } from 'sweagent';
-import { runPlanningWithResult, processPlanningChat } from 'sweagent';
+import { runPlanningAgent, processPlanningChat } from 'sweagent';
 ```
 
 ### API keys

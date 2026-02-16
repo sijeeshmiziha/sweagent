@@ -1,10 +1,10 @@
 <p align="center">
   <h1 align="center">sweagent</h1>
   <p align="center">
-    <strong>The planning layer that makes Cursor, Claude Code, and Codex 10x more effective.</strong>
+    <strong>The Deep Thinking layer that makes Cursor, Claude Code, and Codex 10x more effective.</strong>
   </p>
   <p align="center">
-    14 domain-specialized AI agent pipelines -- Planning, Requirements, Data Modeling, API Design, Auth, Backend, Frontend, and more -- each with dedicated orchestrators, sub-agents, and structured outputs. Generate implementation-ready blueprints, then hand them to your coding agent.
+    Deep, multi-stage reasoning before a single line of code is written. Domain-specialized agent pipelines generate structured blueprints -- requirements, data models, API contracts, auth flows, and architecture specs -- through iterative LLM calls and sub-agent decomposition. Hand the result to your coding agent.
   </p>
 </p>
 
@@ -19,6 +19,7 @@
   <a href="#the-problem">The Problem</a> •
   <a href="#use-with-cursor-claude-code-and-codex">Use with Coding Agents</a> •
   <a href="#why-sweagent">Why sweagent?</a> •
+  <a href="#deep-reasoning-philosophy">Deep Reasoning</a> •
   <a href="#how-it-works">How It Works</a> •
   <a href="#features">Features</a> •
   <a href="#planning-pipeline">Planning Pipeline</a> •
@@ -40,6 +41,7 @@
 - [The Problem](#the-problem)
 - [Use with Cursor, Claude Code, and Codex](#use-with-cursor-claude-code-and-codex)
 - [Why sweagent?](#why-sweagent)
+- [Deep Reasoning Philosophy](#deep-reasoning-philosophy)
 - [How It Works](#how-it-works)
 - [Features](#features)
 - [Planning Pipeline](#planning-pipeline)
@@ -79,17 +81,15 @@ AI coding agents -- Cursor, Claude Code, Codex -- are powerful executors, but th
 Each pipeline walks through structured stages -- discovery, analysis, design, synthesis -- not a single LLM call. The result is a professional-grade artifact that a coding agent can execute step-by-step, or that a human architect can review and approve.
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 
-const { planning, plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'Task manager app with user auth, task CRUD, assignments, and a dashboard',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-if (planning) {
-  console.log('Plan is implementation-ready. Hand it to your coding agent.');
-  console.log(plan); // Full markdown blueprint
-}
+console.log('Plan is implementation-ready. Hand it to your coding agent.');
+console.log(result.output); // Full markdown blueprint
 ```
 
 TypeScript-first, built on the Vercel AI SDK, ships with all provider SDKs (OpenAI, Anthropic, Google). Set your API keys and go.
@@ -117,15 +117,15 @@ flowchart LR
 Generate a plan, save it to your project, and reference it in Cursor chat or `.cursor/rules/`:
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 import { writeFileSync } from 'fs';
 
-const { planning, plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'E-commerce with users, products, cart, checkout, admin dashboard',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-writeFileSync('plan.md', plan);
+writeFileSync('plan.md', result.output);
 // Open plan.md in Cursor and say: "Implement this plan step by step"
 // Or copy plan.md to .cursor/rules/ so every agent session uses it as context
 ```
@@ -135,19 +135,19 @@ writeFileSync('plan.md', plan);
 Generate a plan and save it as `CLAUDE.md` or a reference file. Claude Code automatically reads `CLAUDE.md` for project context:
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 import { writeFileSync } from 'fs';
 
-const { plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'SaaS dashboard with multi-tenancy, billing, and analytics',
   model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
 });
 
 // Option 1: Save as CLAUDE.md for automatic context
-writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${plan}`);
+writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${result.output}`);
 
 // Option 2: Save as plan.md and reference it
-writeFileSync('plan.md', plan);
+writeFileSync('plan.md', result.output);
 // Then tell Claude Code: "Read plan.md and implement phase 1"
 ```
 
@@ -212,9 +212,44 @@ Long-running agents fail when they lose context. sweagent encodes patterns for s
 
 ---
 
+## Deep Reasoning Philosophy
+
+Coding agents generate code fast. But speed without depth produces fragile, incomplete software. sweagent applies deep reasoning -- structured, multi-stage, decomposed -- so your coding agent receives a blueprint that has been thoroughly worked through before implementation begins.
+
+### Multi-Stage Reasoning
+
+sweagent never produces one-shot answers. The Planning Agent progresses through four deliberate stages -- discovery, requirements, design, synthesis -- with dedicated LLM calls at each step. Each stage consumes the output of the previous one, building context incrementally rather than cramming everything into a single prompt. Requirements inform design decisions, design decisions shape API contracts, and API contracts feed the implementation order.
+
+```mermaid
+flowchart LR
+  Input["Requirement"] --> Discovery["Discovery"]
+  Discovery --> Requirements["Requirements"]
+  Requirements --> SubReq1["entity-analyzer"]
+  Requirements --> SubReq2["page-planner"]
+  Requirements --> SubReq3["flow-designer"]
+  SubReq1 --> Design["Design"]
+  SubReq2 --> Design
+  SubReq3 --> Design
+  Design --> SubDes1["endpoint-analyzer"]
+  Design --> SubDes2["contract-designer"]
+  SubDes1 --> Synthesis["Synthesis"]
+  SubDes2 --> Synthesis
+  Synthesis --> Output["Blueprint"]
+```
+
+### Sub-Agent Decomposition
+
+When a domain is too complex for a single agent, sweagent delegates to specialized sub-agents that run in isolation with their own context, tools, and models. The Data Modeler spawns an `entity-analyzer` to extract entities, a `relationship-mapper` for cardinality, and a `schema-refiner` to normalize the result. The React Builder uses a `graphql-analyzer` to parse schema structure and a `config-validator` to check the output. Each sub-agent returns condensed results to its orchestrator, keeping context windows focused and reasoning sharp.
+
+### Inference-Time Depth
+
+Unlike single-prompt planning tools, sweagent deliberately spends more inference-time compute for higher-quality output. The Planning Agent alone makes 12+ LLM calls across 4 stages and 7 sub-agents. The Data Modeler adds 3 more sub-agent calls. The full pipeline chains 7+ domain agents end-to-end, each with its own multi-call pipeline. This is not a design accident -- more structured reasoning steps produce measurably better blueprints than a single large prompt, the same way a senior engineer produces better architecture by working through each layer separately rather than designing everything at once.
+
+---
+
 ## How It Works
 
-sweagent is not a single agent. It is a system of 14 domain-specialized agent pipelines organized across the full software planning lifecycle. Each module can run independently, or you can chain them into a full-stack specification pipeline.
+sweagent is not a single agent. It is a system of domain-specialized agent pipelines organized across the full software planning lifecycle. Each module can run independently, or you can chain them into a full-stack specification pipeline.
 
 ```mermaid
 flowchart TB
@@ -284,10 +319,9 @@ flowchart TB
 
 | Feature                     | Description                                                                                                                                                                                                                                                       |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **14 Domain Agent Modules** | Planning, Requirement Gatherer, Data Modeler, API Designer, Auth Designer, Backend Architect, Express Builder, Apollo Builder, Frontend Architect, React Builder, Next.js Builder, Execution Planner, and Hello World template -- each a self-contained pipeline. |
+| **Domain Agent Modules**    | Planning, Requirement Gatherer, Data Modeler, API Designer, Auth Designer, Backend Architect, Express Builder, Apollo Builder, Frontend Architect, React Builder, Next.js Builder, Execution Planner, and Hello World template -- each a self-contained pipeline. |
 | **Multi-Stage Pipelines**   | Every domain agent progresses through structured stages (discovery, requirements, design, synthesis) with dedicated LLM calls at each step. No single-shot prompts.                                                                                               |
 | **Sub-Agent Orchestration** | Complex domains delegate to specialized sub-agents (`entity-analyzer`, `schema-refiner`, `graphql-analyzer`, `config-validator`) that run in isolation and return condensed results.                                                                              |
-| **Plan Validation**         | LLM-based judge validates that planning output meets all criteria for a coding agent to start implementing.                                                                                                                                                       |
 | **Structured Outputs**      | Requirements as typed JSON (actors, flows, stories, modules). DB schemas with field-level detail. Frontend configs with pages, hooks, and branding. Plans with 11 sections.                                                                                       |
 | **Multi-Provider Models**   | Unified API for OpenAI, Anthropic, and Google. One `createModel()` call, zero provider lock-in.                                                                                                                                                                   |
 | **Type-Safe Tools**         | Define tools with Zod schemas; full type inference and validation before execution. Minimal, workflow-oriented tool sets.                                                                                                                                         |
@@ -310,9 +344,7 @@ flowchart LR
   Discovery --> Requirements["Requirements"]
   Requirements --> Design["Design"]
   Design --> Synthesis["Synthesis"]
-  Synthesis --> Plan["plan.md"]
-  Plan --> Validate["LLM Validator"]
-  Validate --> Output["planning: bool, plan: string"]
+  Synthesis --> Output["plan.md"]
 ```
 
 ### Stages
@@ -340,7 +372,7 @@ The plan is a markdown document with these sections:
 - **Edge Cases** -- error handling, boundary conditions
 - **Testing Checklist** -- what to verify at each phase
 
-### Three modes
+### Two modes
 
 **One-shot mode** -- pass a requirement, get a plan:
 
@@ -352,18 +384,6 @@ const result = await runPlanningAgent({
   model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
 });
 console.log(result.output); // Full plan markdown
-```
-
-**With validation** -- run the plan through an LLM judge that checks completeness:
-
-```typescript
-import { runPlanningWithResult } from 'sweagent';
-
-const { planning, plan } = await runPlanningWithResult({
-  input: 'Fitness app with workouts, nutrition tracking, and social features',
-  model: { provider: 'openai', model: 'gpt-4o-mini' },
-});
-// planning === true means the plan passed all validation criteria
 ```
 
 **Interactive chat mode** -- multi-turn conversation where you refine the plan:
@@ -416,16 +436,6 @@ const planResult = await runPlanningFromRequirements({
 
 console.log(planResult.output); // Full implementation plan as markdown
 ```
-
-### Validation criteria
-
-The LLM validator (`validatePlanForCodingAgent`) checks that the plan includes:
-
-1. Clear project overview and scope
-2. Tech stack specified (languages, frameworks, database, auth)
-3. Implementation order or phased steps
-4. Concrete actionable steps (files, routes, APIs, or models)
-5. Data model, authentication, and API surface addressed
 
 ---
 
@@ -529,26 +539,24 @@ Each module is a self-contained domain agent with its own orchestrator, pipeline
 
 ### Planning Agent
 
-Turns a natural-language project description into an implementation-ready markdown plan through 4 stages and 8+ LLM calls. Covers tech stack, data models, API routes, implementation order, edge cases, and testing checklists. Optional LLM validation judges completeness.
+Turns a natural-language project description into an implementation-ready markdown plan through 4 stages and 12+ LLM calls. Covers tech stack, data models, API routes, implementation order, edge cases, and testing checklists.
 
-| Attribute         | Detail                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Stages**        | Discovery, Requirements (4 LLM calls), Design (2 LLM calls), Synthesis                                       |
-| **Sub-Agents**    | --                                                                                                           |
-| **Tools**         | -- (pipeline stages, not tool-based)                                                                         |
-| **Output Format** | Markdown plan (11 sections)                                                                                  |
-| **Validation**    | LLM judge checks completeness and actionability                                                              |
-| **Modes**         | One-shot (`runPlanningAgent`), validated (`runPlanningWithResult`), interactive chat (`processPlanningChat`) |
+| Attribute         | Detail                                                                  |
+| ----------------- | ----------------------------------------------------------------------- |
+| **Stages**        | Discovery, Requirements (4 LLM calls), Design (2 LLM calls), Synthesis  |
+| **Sub-Agents**    | --                                                                      |
+| **Tools**         | -- (pipeline stages, not tool-based)                                    |
+| **Output Format** | Markdown plan (11 sections)                                             |
+| **Modes**         | One-shot (`runPlanningAgent`), interactive chat (`processPlanningChat`) |
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 
-const { planning, plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'E-commerce: users, orders, products. Admins manage products.',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
-// planning: boolean -- did the plan pass validation?
-// plan: string -- full markdown blueprint
+console.log(result.output); // Full markdown blueprint
 ```
 
 See [Planning Pipeline](#planning-pipeline) for stage-by-stage details.
@@ -940,15 +948,14 @@ const result = await runAgent({
 Generate an implementation plan for a coding agent:
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 
-const { planning, plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'E-commerce site: users, products, cart, checkout, admin dashboard',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-console.log('Ready for coding agent:', planning);
-console.log(plan);
+console.log(result.output); // Full markdown blueprint
 ```
 
 ### Level 6: MCP integration
@@ -1303,19 +1310,6 @@ const result = await runPlanningAgent({
 // result: AgentResult { output, steps, totalUsage, messages }
 ```
 
-**runPlanningWithResult(config)** -- Runs the planning agent then validates the output with an LLM judge.
-
-```typescript
-import { runPlanningWithResult } from 'sweagent';
-
-const result = await runPlanningWithResult({
-  input: string,
-  model?: ModelConfig,
-  logger?: Logger,
-});
-// result: { planning: boolean, plan: string }
-```
-
 **processPlanningChat(userMessage, context, config)** -- Multi-turn chat mode. Pass `null` context on the first turn.
 
 ```typescript
@@ -1343,8 +1337,6 @@ const result = await runPlanningFromRequirements({
 });
 // result: AgentResult { output (plan markdown), steps, totalUsage, messages }
 ```
-
-**validatePlanForCodingAgent(planMarkdown, model, logger)** -- LLM-based validation. Returns `{ valid: boolean, feedback?: string }`.
 
 **assemblePlan(projectName, sections)** -- Assemble `PlanSections` into a single markdown string.
 
@@ -1435,8 +1427,6 @@ Implement a factory that returns a model conforming to the internal `Model` inte
 **Agent hits max iterations** -- Increase `maxIterations` or simplify the task. Check that tools return clear, parseable results so the model can decide the next step.
 
 **Tool not found** -- Tools must be in the same object passed to `runAgent` under the name the model uses (e.g. `createToolSet({ calculator: calculatorTool })` means the model calls `calculator`).
-
-**Planning module returns `planning: false`** -- The LLM validator found missing sections. Check the `plan` string for gaps (no tech stack? no implementation order?). Try a more capable model (e.g. `gpt-4o` instead of `gpt-4o-mini`). Provide a more detailed project description as input.
 
 ---
 

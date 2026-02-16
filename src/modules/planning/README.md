@@ -109,36 +109,14 @@ console.log(result.output); // Plan markdown
 console.log(result.messages); // Full conversation history
 ```
 
-### 3. With Validation (`runPlanningWithResult`)
-
-Runs the one-shot agent then validates the output with an LLM judge. Returns a canonical `{ planning: boolean, plan: string }`.
-
-```typescript
-import { runPlanningWithResult } from 'sweagent';
-
-const result = await runPlanningWithResult({
-  input: 'SaaS dashboard with analytics and user management',
-  model: { provider: 'openai', model: 'gpt-4o-mini' },
-});
-
-if (result.planning) {
-  console.log('Plan is implementation-ready');
-  console.log(result.plan);
-} else {
-  console.log('Plan needs more work');
-  console.log(result.plan); // Raw output
-}
-```
-
 ## Importing into Your Project
 
 ```typescript
 // Main agent functions
-import { runPlanningAgent, runPlanningWithResult, processPlanningChat } from 'sweagent';
+import { runPlanningAgent, processPlanningChat } from 'sweagent';
 
-// Validation and utilities
+// Utilities
 import {
-  validatePlanForCodingAgent,
   assemblePlan,
   writePlanToFile,
   createPlanningContextBuilder,
@@ -166,7 +144,7 @@ import type {
 
 ## Configuration
 
-### `PlanningAgentConfig` (for `runPlanningAgent` and `runPlanningWithResult`)
+### `PlanningAgentConfig` (for `runPlanningAgent`)
 
 | Property        | Type                        | Default                                        | Description                          |
 | --------------- | --------------------------- | ---------------------------------------------- | ------------------------------------ |
@@ -292,15 +270,6 @@ interface AgentResult {
 }
 ```
 
-**`runPlanningWithResult`** returns `PlanningResult`:
-
-```typescript
-interface PlanningResult {
-  planning: boolean; // true if plan passed LLM validation
-  plan: string; // Plan markdown
-}
-```
-
 **`processPlanningChat`** returns `PlanChatTurnResult`:
 
 ```typescript
@@ -387,19 +356,6 @@ import { writePlanToFile } from 'sweagent';
 await writePlanToFile(markdown, './plan.md');
 ```
 
-### `validatePlanForCodingAgent(planMarkdown, model, logger)`
-
-LLM-based validator that checks if the plan is implementation-ready:
-
-```typescript
-import { validatePlanForCodingAgent } from 'sweagent';
-import { createModel } from 'sweagent';
-
-const model = createModel({ provider: 'openai', model: 'gpt-4o-mini' });
-const result = await validatePlanForCodingAgent(planMarkdown, model);
-// { valid: boolean, feedback?: string }
-```
-
 ---
 
 ## Why Use This with Coding Agents
@@ -413,23 +369,21 @@ Coding agents like Cursor, Claude Code, and Codex produce dramatically better co
 Generate a plan and save it as a Cursor rule or reference file:
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 import { writeFileSync, mkdirSync } from 'fs';
 
-const { planning, plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'E-commerce with users, products, cart, checkout, admin dashboard',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-if (planning) {
-  // Save as a Cursor rule so every agent session has the plan as context
-  mkdirSync('.cursor/rules', { recursive: true });
-  writeFileSync('.cursor/rules/plan.md', plan);
+// Save as a Cursor rule so every agent session has the plan as context
+mkdirSync('.cursor/rules', { recursive: true });
+writeFileSync('.cursor/rules/plan.md', result.output);
 
-  // Or save as a standalone file and reference it in Cursor chat
-  writeFileSync('plan.md', plan);
-  // Then in Cursor: "Implement the plan in @plan.md step by step"
-}
+// Or save as a standalone file and reference it in Cursor chat
+writeFileSync('plan.md', result.output);
+// Then in Cursor: "Implement the plan in @plan.md step by step"
 ```
 
 ### Claude Code
@@ -437,15 +391,15 @@ if (planning) {
 Save the plan as `CLAUDE.md` so Claude Code reads it automatically:
 
 ```typescript
-import { runPlanningWithResult } from 'sweagent';
+import { runPlanningAgent } from 'sweagent';
 import { writeFileSync } from 'fs';
 
-const { plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'SaaS dashboard with multi-tenancy and billing',
   model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
 });
 
-writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${plan}`);
+writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${result.output}`);
 // Claude Code automatically reads CLAUDE.md for project context
 // Then: "Implement phase 1 of the plan"
 ```
@@ -455,13 +409,13 @@ writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${plan}`);
 Write the plan to a file and reference it in your Codex prompt:
 
 ```typescript
-import { runPlanningWithResult, writePlanToFile } from 'sweagent';
+import { runPlanningAgent, writePlanToFile } from 'sweagent';
 
-const { plan } = await runPlanningWithResult({
+const result = await runPlanningAgent({
   input: 'Task manager with teams and Kanban boards',
   model: { provider: 'openai', model: 'gpt-4o-mini' },
 });
 
-await writePlanToFile(plan, './plan.md');
+await writePlanToFile(result.output, './plan.md');
 // Feed plan.md to Codex as context for implementation
 ```
