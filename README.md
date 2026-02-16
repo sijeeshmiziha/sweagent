@@ -100,91 +100,99 @@ TypeScript-first, built on the Vercel AI SDK, ships with all provider SDKs (Open
 
 ## Use with Cursor, Claude Code, and Codex
 
-Coding agents are powerful executors -- but they build faster and better when they start from a structured plan instead of a vague prompt. sweagent generates the blueprints; your coding agent implements them.
-
-> **MCP Server (zero-code integration):** sweagent also ships as an MCP server. Configure it once in your IDE and call any of the 13 domain agents directly from the chat -- no scripts or code needed. See [MCP Server](#mcp-server) for setup instructions for Cursor, VS Code, Windsurf, and Claude Desktop.
+sweagent is an MCP server. Install it once, add one config to your IDE, and all 13 domain agents are available directly in your chat -- planning, requirements, data modeling, API design, auth, architecture, and more. No scripts, no code, no file juggling.
 
 ```mermaid
 flowchart LR
-  Requirement["Your idea"] --> sweagent["sweagent"]
-  sweagent --> Plan["plan.md / JSON spec"]
-  Plan --> Cursor["Cursor"]
-  Plan --> ClaudeCode["Claude Code"]
-  Plan --> Codex["Codex"]
-  Cursor --> Code["Production code"]
-  ClaudeCode --> Code
-  Codex --> Code
+  You["You type a prompt"] -->|"MCP"| Server["sweagent"]
+  Server --> Plan["plan"]
+  Server --> Req["gather_requirements"]
+  Server --> Data["design_data_model"]
+  Server --> Api["design_api"]
+  Server --> More["... 9 more tools"]
+  Plan --> Agent["Your coding agent implements it"]
+  Req --> Agent
+  Data --> Agent
+  Api --> Agent
+  More --> Agent
 ```
 
-### With Cursor
+### 1. Install
 
-Generate a plan, save it to your project, and reference it in Cursor chat or `.cursor/rules/`:
-
-```typescript
-import { runPlanningAgent } from 'sweagent';
-import { writeFileSync } from 'fs';
-
-const result = await runPlanningAgent({
-  input: 'E-commerce with users, products, cart, checkout, admin dashboard',
-  model: { provider: 'openai', model: 'gpt-4o-mini' },
-});
-
-writeFileSync('plan.md', result.output);
-// Open plan.md in Cursor and say: "Implement this plan step by step"
-// Or copy plan.md to .cursor/rules/ so every agent session uses it as context
+```bash
+npm install -g sweagent
 ```
 
-### With Claude Code
+### 2. Add the config for your IDE
 
-Generate a plan and save it as `CLAUDE.md` or a reference file. Claude Code automatically reads `CLAUDE.md` for project context:
+**Cursor** -- create `.cursor/mcp.json` in your project root:
 
-```typescript
-import { runPlanningAgent } from 'sweagent';
-import { writeFileSync } from 'fs';
-
-const result = await runPlanningAgent({
-  input: 'SaaS dashboard with multi-tenancy, billing, and analytics',
-  model: { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
-});
-
-// Option 1: Save as CLAUDE.md for automatic context
-writeFileSync('CLAUDE.md', `# Implementation Plan\n\n${result.output}`);
-
-// Option 2: Save as plan.md and reference it
-writeFileSync('plan.md', result.output);
-// Then tell Claude Code: "Read plan.md and implement phase 1"
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": { "OPENAI_API_KEY": "your-openai-api-key" }
+    }
+  }
+}
 ```
 
-### With Codex
+**VS Code (Copilot)** -- create `.vscode/mcp.json` in your project root:
 
-Codex works best with structured, machine-readable specs. Use the Requirement Gatherer or Data Modeler for JSON output:
-
-```typescript
-import { runRequirementGathererAgent } from 'sweagent';
-import { writeFileSync } from 'fs';
-
-const result = await runRequirementGathererAgent({
-  input: 'Task manager with teams, Kanban boards, and time tracking',
-  model: { provider: 'openai', model: 'gpt-4o-mini' },
-  maxIterations: 15,
-});
-
-// Structured JSON with actors, flows, stories, modules, DB schema, API design
-writeFileSync('requirements.json', result.output);
-// Feed requirements.json to Codex as context for implementation
+```json
+{
+  "servers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": { "OPENAI_API_KEY": "your-openai-api-key" }
+    }
+  }
+}
 ```
 
-### Why this works
+**Windsurf** -- edit `~/.codeium/windsurf/mcp_config.json`:
 
-Without sweagent, a coding agent receives "build a task manager" and immediately starts guessing. With sweagent, it receives:
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": { "OPENAI_API_KEY": "your-openai-api-key" }
+    }
+  }
+}
+```
 
-- **11-section markdown plan** with tech stack, data models, API routes, auth flow, implementation order, edge cases, and testing checklist
-- **Structured JSON requirements** with actors, user flows, stories, and module breakdowns
-- **Database schemas** with exact field types, relationships, indexes, and validation rules
-- **API contracts** with endpoints, methods, request/response shapes, and auth requirements
-- **Frontend architecture** with pages, components, routing, and state management
+**Claude Desktop** -- edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
-The coding agent stops guessing and starts executing a professional-grade blueprint.
+```json
+{
+  "mcpServers": {
+    "sweagent": {
+      "command": "sweagent",
+      "env": { "OPENAI_API_KEY": "your-openai-api-key" }
+    }
+  }
+}
+```
+
+> **Don't want a global install?** Replace `"command": "sweagent"` with `"command": "npx"` and add `"args": ["-y", "sweagent"]`. See [MCP Server](#mcp-server) for all options including from-source setup.
+
+### 3. Restart your IDE and start prompting
+
+Open the chat and try:
+
+- _"Use the plan tool to plan a task manager app with teams, Kanban boards, and time tracking."_
+- _"Use the gather_requirements tool to extract structured requirements for an e-commerce platform."_
+- _"Use the design_data_model tool to design a PostgreSQL schema for a SaaS billing system."_
+
+The agent calls sweagent, gets back a structured blueprint, and can immediately start implementing it.
+
+### Full reference
+
+- [MCP Server](#mcp-server) -- all 13 tools, input parameters, multi-provider setup, troubleshooting
+- [Getting Started](#getting-started) and [Full Pipeline](#full-pipeline) -- programmatic API for scripted pipelines, CI, or chaining multiple agents in code
 
 ---
 
