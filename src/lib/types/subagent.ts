@@ -3,8 +3,10 @@
  * Specialized agents with custom prompts, tool restrictions, and isolated context
  */
 
-import type { AgentTool, AgentResult, AgentStep } from './agent';
+import type { z } from 'zod';
+import type { AgentTool, AgentResult, AgentStep, AgentObserver } from './agent';
 import type { ModelConfig } from './model';
+import type { HandleStepsFn } from './handle-steps';
 
 /**
  * Configuration for defining a subagent (input to defineSubagent)
@@ -26,6 +28,22 @@ export interface SubagentConfig {
   maxIterations?: number;
   /** Callback for each step */
   onStep?: (step: AgentStep) => void;
+  /** Observers forwarded to the agent loop */
+  observers?: AgentObserver[];
+  /** Prompt shown in the parent's tool description when this subagent is exposed as a tool */
+  spawnerPrompt?: string;
+  /** If true, prepend the parent's system prompt to the subagent's system prompt */
+  inheritParentSystemPrompt?: boolean;
+  /** Zod schema for validating the agent's final structured output */
+  outputSchema?: z.ZodType;
+  /** Prompt injected before each LLM step (reminders, constraints) */
+  stepPrompt?: string;
+  /** Generator for programmatic + LLM hybrid control */
+  handleSteps?: HandleStepsFn;
+  /** Max context window tokens; triggers pruning when exceeded */
+  maxContextTokens?: number;
+  /** Max total tokens the subagent may consume */
+  tokenBudget?: number;
 }
 
 /**

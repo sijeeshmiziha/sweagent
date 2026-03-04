@@ -2,33 +2,23 @@
  * Agent loop: model + tools, AI SDK message shapes
  */
 
-import type { AgentConfig, AgentResult, AgentStep, AgentToolResult } from '../types/agent';
+import type { AgentConfig, AgentResult, AgentStep } from '../types/agent';
 import type { ModelMessage } from '../types/common';
 import type { ModelToolCall } from '../types/model';
 import { AgentError } from '../utils/errors';
 import { sumTokenUsage } from '../utils/utils';
-import { executeToolByName } from '../tools';
-import { notifyObserversStep, notifyObserversTool, notifyObserversError } from './agent-observers';
+import {
+  notifyObserversStep,
+  notifyObserversTool,
+  notifyObserversError,
+  notifyObserversBudgetWarning,
+} from './agent-observers';
+import { executeToolCalls } from './agent-tool-executor';
+import { pruneContext } from '../context';
 
 /**
- * Run an agent with the given configuration.
- *
- * 1. Calls the model with ModelMessage[] and tools
- * 2. If no tool calls, returns the response
- * 3. If tool calls, executes them and appends assistant + tool messages (AI SDK shape)
- * 4. Repeats until done or max iterations reached
- *
- * @example
- * ```typescript
- * const result = await runAgent({
- *   model: createModel({ provider: 'openai', model: 'gpt-4o' }),
- *   tools: createToolSet({ search: searchTool, calculator: calculatorTool }),
- *   systemPrompt: 'You are a helpful assistant.',
- *   input: 'What is 2 + 2?',
- *   maxIterations: 10
- * });
- * console.log(result.output);
- * ```
+ * Run an agent loop: invoke model, execute tools, repeat until done.
+ * Supports context pruning (maxContextTokens) and token budgets.
  */
 export async function runAgent(config: AgentConfig): Promise<AgentResult> {
   const {
@@ -40,6 +30,8 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
     onStep,
     observers,
     logger,
+    maxContextTokens,
+    tokenBudget,
   } = config;
 
   logger?.info('Starting agent', { maxIterations });
@@ -55,8 +47,25 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
     if (iteration > 0 && iteration >= maxIterations - 2) {
       logger?.warn('Approaching max iterations', { iteration, maxIterations });
     }
-    logger?.debug('Agent iteration', { iteration });
 
+    if (maxContextTokens && iteration > 0) {
+      pruneContext(messages, { maxContextTokens, logger });
+    }
+
+    const cumulative = sumTokenUsage(steps.map(s => s.usage));
+    const used = cumulative.totalTokens ?? 0;
+    if (tokenBudget) {
+      if (used >= tokenBudget) {
+        logger?.warn('Token budget exhausted', { used, tokenBudget });
+        notifyObserversBudgetWarning(observers, used, tokenBudget);
+        return { output: steps.at(-1)?.content ?? '', steps, totalUsage: cumulative, messages };
+      }
+      if (used >= tokenBudget * 0.8) {
+        notifyObserversBudgetWarning(observers, used, tokenBudget);
+      }
+    }
+
+    logger?.debug('Agent iteration', { iteration });
     const response = await model.invoke(messages, { tools });
 
     const step: AgentStep = {
@@ -66,24 +75,14 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
       usage: response.usage,
     };
 
-    if (response.text) {
-      logger?.debug('Model response', { iteration, textLength: response.text.length });
-    }
-
     if (!response.toolCalls?.length) {
+      step.cumulativeUsage = sumTokenUsage(steps.map(s => s.usage).concat(step.usage));
       steps.push(step);
       onStep?.(step);
-      notifyObserversStep(observers, step);
-      logger?.info('Agent completed', {
-        steps: steps.length,
-        totalUsage: sumTokenUsage(steps.map(s => s.usage)),
-      });
-      return {
-        output: response.text,
-        steps,
-        totalUsage: sumTokenUsage(steps.map(s => s.usage)),
-        messages,
-      };
+      notifyObserversStep(observers, step, step.cumulativeUsage);
+      const totalUsage = step.cumulativeUsage;
+      logger?.info('Agent completed', { steps: steps.length, totalUsage });
+      return { output: response.text, steps, totalUsage, messages };
     }
 
     logger?.debug('Tool calls', {
@@ -94,61 +93,22 @@ export async function runAgent(config: AgentConfig): Promise<AgentResult> {
       })),
     });
 
-    const assistantContent = [
-      ...(response.text ? [{ type: 'text' as const, text: response.text }] : []),
-      ...response.toolCalls.map((tc: ModelToolCall) => ({
-        type: 'tool-call' as const,
-        toolCallId: tc.toolCallId,
-        toolName: tc.toolName,
-        input: tc.input,
-      })),
-    ];
-    messages.push({ role: 'assistant', content: assistantContent });
-
-    const toolResults: AgentToolResult[] = [];
-
-    for (const toolCall of response.toolCalls) {
-      const execResult = await executeToolByName(tools, toolCall.toolName, toolCall.input, {
-        toolCallId: toolCall.toolCallId,
-        logger,
-      });
-
-      const agentResult: AgentToolResult = {
-        toolCallId: toolCall.toolCallId,
-        toolName: toolCall.toolName,
-        output: execResult.success ? execResult.output : execResult.error,
-        isError: !execResult.success,
-      };
-      toolResults.push(agentResult);
-      notifyObserversTool(observers, toolCall.toolName, agentResult.output);
-
-      const outputVal = agentResult.isError
-        ? { type: 'error-text' as const, value: String(agentResult.output) }
-        : {
-            type: 'text' as const,
-            value:
-              typeof agentResult.output === 'string'
-                ? agentResult.output
-                : JSON.stringify(agentResult.output),
-          };
-
-      messages.push({
-        role: 'tool',
-        content: [
-          {
-            type: 'tool-result' as const,
-            toolCallId: toolCall.toolCallId,
-            toolName: toolCall.toolName,
-            output: outputVal,
-          },
-        ],
-      });
-    }
+    const toolResults = await executeToolCalls({
+      tools,
+      toolCalls: response.toolCalls,
+      messages,
+      logger,
+      responseText: response.text || undefined,
+      onToolResult: (name, output) => {
+        notifyObserversTool(observers, name, output);
+      },
+    });
 
     step.toolResults = toolResults;
+    step.cumulativeUsage = sumTokenUsage(steps.map(s => s.usage).concat(step.usage));
     steps.push(step);
     onStep?.(step);
-    notifyObserversStep(observers, step);
+    notifyObserversStep(observers, step, step.cumulativeUsage);
   }
 
   const err = new AgentError(

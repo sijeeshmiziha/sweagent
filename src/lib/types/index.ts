@@ -7,3 +7,4 @@ export type * from './tool';
 export type * from './agent';
 export type * from './common';
 export type * from './subagent';
+export type * from './handle-steps';

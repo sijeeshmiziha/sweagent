@@ -8,6 +8,7 @@ import type { Model } from './model';
 import type { Logger, ModelMessage } from './common';
 import type { LanguageModelUsage } from './model';
 import type { ModelToolCall } from './model';
+import type { HandleStepsFn } from './handle-steps';
 
 /**
  * Tool type for agent context
@@ -30,9 +31,10 @@ export interface AgentToolResult {
  * Multiple observers can be attached via AgentConfig.observers.
  */
 export interface AgentObserver {
-  onStep?(step: AgentStep): void;
+  onStep?(step: AgentStep, cumulativeUsage?: LanguageModelUsage): void;
   onToolExecution?(toolName: string, result: unknown): void;
   onError?(error: Error): void;
+  onTokenBudgetWarning?(used: number, budget: number): void;
 }
 
 /**
@@ -55,6 +57,14 @@ export interface AgentConfig {
   observers?: AgentObserver[];
   /** Optional logger for agent execution */
   logger?: Logger;
+  /** Max context window tokens; triggers pruning when exceeded (default 200k) */
+  maxContextTokens?: number;
+  /** Max total tokens (input+output) the agent may consume before stopping */
+  tokenBudget?: number;
+  /** Generator function for programmatic + LLM hybrid control flow */
+  handleSteps?: HandleStepsFn;
+  /** Prompt injected before each LLM step (e.g. reminders, constraints) */
+  stepPrompt?: string;
 }
 
 /**
@@ -71,6 +81,8 @@ export interface AgentStep {
   toolResults?: AgentToolResult[];
   /** Token usage for this step */
   usage?: LanguageModelUsage;
+  /** Cumulative token usage up to and including this step */
+  cumulativeUsage?: LanguageModelUsage;
 }
 
 /**
