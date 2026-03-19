@@ -38,9 +38,9 @@ output/
 *.tsbuildinfo
 
 
+# References
 .ref
 
-.cursor/
-
+# Logs
 logs/
 
