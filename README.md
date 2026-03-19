@@ -1713,13 +1713,41 @@ npm run build
 | `npm run typecheck`                 | TypeScript        |
 | `npm run build`                     | Production build  |
 
-**Support**
+---
 
-- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) -- Bugs and features
-- [GitHub Discussions](https://github.com/sijeeshmiziha/sweagent/discussions) -- Questions
+## Support
+
+### Get Help
+
+- [GitHub Issues](https://github.com/sijeeshmiziha/sweagent/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/sijeeshmiziha/sweagent/discussions) - Questions and community help
+
+### Stay Updated
+
+- [Star the repo](https://github.com/sijeeshmiziha/sweagent) to get notified of releases
+- [Star History](https://star-history.com/#sijeeshmiziha/sweagent&Date) – view star growth over time
+- Watch the repo for updates on new features
+
+### Sponsorship
+
+If SWEAgent helps your business, consider supporting development:
+
+- [GitHub Sponsors](https://github.com/sponsors/sijeeshmiziha)
+
+---
+
+## Sponsors
+
+Support SWEAgent by becoming a [sponsor](https://github.com/sponsors/sijeeshmiziha). Your logo will appear here with a link to your site.
 
 ---
 
 ## License
 
 MIT License -- see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  Made with ❤️ by the CompilersLab team!
+</p>
