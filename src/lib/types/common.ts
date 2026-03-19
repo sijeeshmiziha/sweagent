@@ -1,9 +1,9 @@
 /**
  * Common types shared across modules
- * Re-exports AI SDK message types; keeps sweagent-specific ImageInput and Logger
+ * Re-exports message types; keeps sweagent-specific ImageInput and Logger
  */
 
-export type { ModelMessage } from 'ai';
+export type { ModelMessage } from './ai-types';
 
 /**
  * Image input for vision models

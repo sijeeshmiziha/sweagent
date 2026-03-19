@@ -37,19 +37,19 @@ describe('helloWorldTool', () => {
 
   it('should accept very long name', async () => {
     const longName = 'A'.repeat(1000);
-    const result = await helloWorldTool.execute!(
+    const result = (await helloWorldTool.execute!(
       { name: longName },
       { toolCallId: '', messages: [] }
-    );
+    )) as { greeting: string };
     expect(result.greeting).toContain(longName);
     expect(result.greeting).toContain('Welcome to sweagent.');
   });
 
   it('should accept name with special characters', async () => {
-    const result = await helloWorldTool.execute!(
+    const result = (await helloWorldTool.execute!(
       { name: 'O\'Brien <test> & "quoted"' },
       { toolCallId: '', messages: [] }
-    );
+    )) as { greeting: string };
     expect(result.greeting).toContain('O\'Brien <test> & "quoted"');
     expect(result.greeting).toContain('Welcome to sweagent.');
   });
@@ -67,7 +67,7 @@ describe('helloWorldTool', () => {
   });
 
   it('should have inputSchema (Zod) including name', () => {
-    const schema = helloWorldTool.inputSchema as z.ZodType;
+    const schema = helloWorldTool.inputSchema!;
     expect(schema).toBeDefined();
     const jsonSchema = z.toJSONSchema(schema) as Record<string, unknown>;
     expect(jsonSchema.type).toBe('object');

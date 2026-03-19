@@ -1,16 +1,15 @@
 /**
  * Model-related types
- * Uses AI SDK types for messages, tools, usage, and result shape
+ * Uses in-repo types for messages, tools, usage, and result shape
  */
 
-import type { Tool, ModelMessage, FinishReason, LanguageModelUsage } from 'ai';
+import type { Tool, ModelMessage, FinishReason, LanguageModelUsage } from './ai-types';
 import type { ImageInput } from './common';
 
-export type { LanguageModelUsage, FinishReason } from 'ai';
+export type { LanguageModelUsage, FinishReason } from './ai-types';
 
 /**
  * Tool type for model invocation
- * Uses the default Tool type which accepts any input/output schema
  */
 export type ModelTool = Tool;
 

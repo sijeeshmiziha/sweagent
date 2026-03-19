@@ -3,7 +3,7 @@ import { runAgent } from '../../../src/lib/agents';
 import { createToolSet, defineTool } from '../../../src/lib/tools';
 import { z } from 'zod';
 import type { Model, ModelResponse } from '../../../src/lib/types/model';
-import type { LanguageModelUsage } from 'ai';
+import type { LanguageModelUsage } from '../../../src/lib/types/model';
 import { AgentError } from '../../../src/lib/utils/errors';
 
 function mockUsage(u: {

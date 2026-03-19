@@ -2,7 +2,7 @@
  * Utility functions
  */
 
-import type { LanguageModelUsage } from 'ai';
+import type { LanguageModelUsage } from '../types/ai-types';
 
 const emptyDetails = {
   noCacheTokens: undefined as number | undefined,

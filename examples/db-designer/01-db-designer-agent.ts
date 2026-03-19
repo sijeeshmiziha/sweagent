@@ -61,7 +61,7 @@ async function main() {
       }
 
       if (step.usage) {
-        logger.debug('Step usage', step.usage);
+        logger.debug('Step usage', step.usage as Record<string, unknown>);
       }
     },
   });

@@ -1,24 +1,16 @@
 /**
- * Anthropic model provider using AI SDK
+ * Anthropic model provider using the official @anthropic-ai/sdk package
  */
 
 import type { Model, ModelConfig } from '../../types/model';
-import { createAIModel } from './base';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createAnthropicModel as createAnthropicAdapter } from './anthropic-adapter';
 
 /**
  * Create an Anthropic model instance
  */
 export function createAnthropicModel(config: ModelConfig): Model {
-  const { model: modelName, apiKey } = config;
-
-  const provider = createAnthropic({
-    apiKey: apiKey ?? process.env.ANTHROPIC_API_KEY,
-  });
-
-  return createAIModel({
-    provider: 'anthropic',
-    modelName,
-    getModel: () => provider(modelName),
+  return createAnthropicAdapter({
+    model: config.model,
+    apiKey: config.apiKey,
   });
 }

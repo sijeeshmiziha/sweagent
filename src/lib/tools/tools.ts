@@ -3,8 +3,8 @@
  */
 
 import { z } from 'zod';
-import { tool } from 'ai';
-import type { Tool, ToolExecutionOptions } from 'ai';
+import { tool } from '../types/tool';
+import type { Tool, ToolExecutionOptions } from '../types/tool';
 import type { Logger } from '../types/common';
 import type { ToolConfig, ToolContext, ToolExecutionResult } from '../types/tool';
 import { ToolError } from '../utils/errors';
@@ -32,7 +32,7 @@ export function defineTool<TInput extends z.ZodType, TOutput>(
         );
       }
     },
-  } as unknown as Parameters<typeof tool>[0]);
+  });
 }
 
 export type ToolSet = Record<string, Tool>;

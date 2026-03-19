@@ -3,7 +3,7 @@
  * Uses AI SDK types for messages, tool calls/results, and usage
  */
 
-import type { Tool } from 'ai';
+import type { Tool } from './ai-types';
 import type { Model } from './model';
 import type { Logger, ModelMessage } from './common';
 import type { LanguageModelUsage } from './model';

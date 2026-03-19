@@ -2,49 +2,52 @@ import { http, HttpResponse } from 'msw';
 
 export const handlers = [
   // OpenAI Chat Completions
-  http.post('https://api.openai.com/v1/chat/completions', async ({ request }) => {
-    const body = (await request.json()) as {
-      tools?: { function: { name: string } }[];
-    };
-    const hasTools = body.tools && body.tools.length > 0;
+  http.post(
+    'https://api.openai.com/v1/chat/completions',
+    async ({ request }: { request: Request }) => {
+      const body = (await request.json()) as {
+        tools?: { function: { name: string } }[];
+      };
+      const hasTools = body.tools && body.tools.length > 0;
 
-    if (hasTools) {
+      if (hasTools) {
+        return HttpResponse.json({
+          choices: [
+            {
+              index: 0,
+              message: {
+                role: 'assistant',
+                content: '',
+                tool_calls: [
+                  {
+                    id: 'call_mock123',
+                    type: 'function',
+                    function: {
+                      name: body.tools?.[0]?.function.name ?? 'unknown',
+                      arguments: JSON.stringify({ test: true }),
+                    },
+                  },
+                ],
+              },
+              finish_reason: 'tool_calls',
+            },
+          ],
+          usage: { prompt_tokens: 50, completion_tokens: 20, total_tokens: 70 },
+        });
+      }
+
       return HttpResponse.json({
         choices: [
           {
             index: 0,
-            message: {
-              role: 'assistant',
-              content: '',
-              tool_calls: [
-                {
-                  id: 'call_mock123',
-                  type: 'function',
-                  function: {
-                    name: body.tools?.[0]?.function.name ?? 'unknown',
-                    arguments: JSON.stringify({ test: true }),
-                  },
-                },
-              ],
-            },
-            finish_reason: 'tool_calls',
+            message: { role: 'assistant', content: 'Mocked OpenAI response' },
+            finish_reason: 'stop',
           },
         ],
-        usage: { prompt_tokens: 50, completion_tokens: 20, total_tokens: 70 },
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
       });
     }
-
-    return HttpResponse.json({
-      choices: [
-        {
-          index: 0,
-          message: { role: 'assistant', content: 'Mocked OpenAI response' },
-          finish_reason: 'stop',
-        },
-      ],
-      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-    });
-  }),
+  ),
 
   // Anthropic Messages
   http.post('https://api.anthropic.com/v1/messages', async () => {

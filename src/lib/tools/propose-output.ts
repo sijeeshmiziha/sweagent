@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import type { Tool } from 'ai';
+import type { Tool } from '../types/tool';
 import { defineTool } from './tools';
 import { propose, finalize, getProposed, listProposed } from '../stores/proposed-store';
 
