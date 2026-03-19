@@ -1,6 +1,6 @@
 {
   "name": "sweagent",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Enterprise-grade domain-specialized AI agents for software planning — multi-stage pipelines, sub-agent orchestration, and structured outputs for planning, requirements, DB design, and frontend generation",
   "author": {
     "name": "sijeeshmiziha",
