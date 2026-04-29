@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/sijeeshmiziha-sweagent-badge.png)](https://mseep.ai/app/sijeeshmiziha-sweagent)
+
 <p align="center">
   <h1 align="center">sweagent</h1>
   <p align="center">
